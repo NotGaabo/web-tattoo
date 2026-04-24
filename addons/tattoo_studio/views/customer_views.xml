@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tattoo Customer List View -->
+    <record id="view_tattoo_customer_list" model="ir.ui.view">
+        <field name="name">tattoo.customer.list</field>
+        <field name="model">tattoo.customer</field>
+        <field name="arch" type="xml">
+            <list string="Customers">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="city"/>
+                <field name="total_spent"/>
+                <field name="number_of_orders"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tattoo Customer Form View -->
+    <record id="view_tattoo_customer_form" model="ir.ui.view">
+        <field name="name">tattoo.customer.form</field>
+        <field name="model">tattoo.customer</field>
+        <field name="arch" type="xml">
+            <form string="Customer">
+                <sheet>
+                    <h1>
+                        <field name="name" placeholder="Customer Name"/>
+                    </h1>
+                    <group>
+                        <group string="Contact Information">
+                            <field name="email"/>
+                            <field name="phone"/>
+                            <field name="gender"/>
+                            <field name="birth_date"/>
+                        </group>
+                        <group string="Address">
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="zip_code"/>
+                            <field name="country_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Customer Information">
+                            <field name="customer_since"/>
+                            <field name="total_spent"/>
+                            <field name="number_of_orders"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Orders" name="orders">
+                            <field name="order_ids" readonly="1">
+                                <list>
+                                    <field name="order_number"/>
+                                    <field name="order_date"/>
+                                    <field name="total_amount"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Appointments" name="appointments">
+                            <field name="appointment_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="appointment_datetime"/>
+                                    <field name="artist_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tattoo_customer" model="ir.actions.act_window">
+        <field name="name">Customers</field>
+        <field name="res_model">tattoo.customer</field>
+        <field name="view_mode">list,form</field>
+        <field name="help">Create and manage customers</field>
+    </record>
+</odoo>

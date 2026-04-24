@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tattoo Appointment List View -->
+    <record id="view_tattoo_appointment_list" model="ir.ui.view">
+        <field name="name">tattoo.appointment.list</field>
+        <field name="model">tattoo.appointment</field>
+        <field name="arch" type="xml">
+            <list string="Appointments" decoration-success="state=='completed'" decoration-danger="state=='cancelled'">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="artist_id"/>
+                <field name="appointment_datetime"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Tattoo Appointment Form View -->
+    <record id="view_tattoo_appointment_form" model="ir.ui.view">
+        <field name="name">tattoo.appointment.form</field>
+        <field name="model">tattoo.appointment</field>
+        <field name="arch" type="xml">
+            <form string="Appointment">
+                <header>
+    <button name="action_confirm" string="Confirm" type="object"
+        invisible="state != 'pending'" class="btn-primary"/>
+
+    <button name="action_complete" string="Complete" type="object"
+        invisible="state != 'confirmed'" class="btn-primary"/>
+
+    <button name="action_cancel" string="Cancel" type="object"
+        invisible="state not in ('draft','pending','confirmed')" class="btn-secondary"/>
+
+    <button name="action_reschedule" string="Reschedule" type="object"
+        invisible="state != 'confirmed'" class="btn-secondary"/>
+
+    <field name="state" widget="statusbar"
+        statusbar_visible="draft,pending,confirmed,completed,cancelled"/>
+</header>
+                <sheet>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group string="Appointment Details">
+                            <field name="customer_id"/>
+                            <field name="artist_id"/>
+                            <field name="service_id"/>
+                            <field name="appointment_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="duration_hours"/>
+                        </group>
+                        <group string="Work Details">
+                            <field name="work_type"/>
+                            <field name="color_preference"/>
+                            <field name="size_area"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Design" name="design">
+                            <group>
+                                <field name="design_image"/>
+                                <field name="design_description"/>
+                            </group>
+                        </page>
+                        <page string="Medical Information" name="medical">
+                            <group>
+                                <field name="allergies"/>
+                                <field name="medications"/>
+                                <field name="previous_tattoos"/>
+                            </group>
+                        </page>
+                        <page string="Payment" name="payment">
+                            <group>
+                                <field name="deposit_amount"/>
+                                <field name="deposit_paid"/>
+                                <field name="remaining_balance"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <group>
+                                <field name="notes"/>
+                                <field name="customer_notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tattoo_appointment" model="ir.actions.act_window">
+        <field name="name">Appointments</field>
+        <field name="res_model">tattoo.appointment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help">Manage tattoo appointments</field>
+    </record>
+</odoo>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Skills -->
+        <record id="skill_realism" model="tattoo.skill">
+            <field name="name">Realism</field>
+            <field name="description">Realistic and detailed tattoo designs</field>
+        </record>
+
+        <record id="skill_minimalism" model="tattoo.skill">
+            <field name="name">Minimalism</field>
+            <field name="description">Simple, elegant minimalist designs</field>
+        </record>
+
+        <record id="skill_traditional" model="tattoo.skill">
+            <field name="name">Traditional</field>
+            <field name="description">Classic traditional tattoo style</field>
+        </record>
+
+        <record id="skill_watercolor" model="tattoo.skill">
+            <field name="name">Watercolor</field>
+            <field name="description">Watercolor and artistic designs</field>
+        </record>
+
+        <record id="skill_biomechanical" model="tattoo.skill">
+            <field name="name">Biomechanical</field>
+            <field name="description">Biomechanical and sci-fi designs</field>
+        </record>
+
+        <!-- Services -->
+        <record id="service_small" model="tattoo.service">
+            <field name="name">Small Tattoo</field>
+            <field name="service_type">small</field>
+            <field name="base_price">80</field>
+            <field name="estimated_time_hours">0.75</field>
+            <field name="available_colors">black</field>
+            <field name="description">Small tattoos (up to 5cm²). Perfect for first tattoos or simple designs.</field>
+        </record>
+
+        <record id="service_medium" model="tattoo.service">
+            <field name="name">Medium Tattoo</field>
+            <field name="service_type">medium</field>
+            <field name="base_price">150</field>
+            <field name="estimated_time_hours">2</field>
+            <field name="available_colors">all</field>
+            <field name="description">Medium tattoos (5-20cm²). Great variety of designs and styles.</field>
+        </record>
+
+        <record id="service_large" model="tattoo.service">
+            <field name="name">Large Tattoo</field>
+            <field name="service_type">large</field>
+            <field name="base_price">300</field>
+            <field name="estimated_time_hours">4</field>
+            <field name="available_colors">all</field>
+            <field name="description">Large tattoos with lots of detail. May require multiple sessions.</field>
+        </record>
+
+        <!-- Products -->
+        <record id="product_aftercare_cream" model="tattoo.product">
+            <field name="name">Premium Aftercare Cream</field>
+            <field name="code">PROD-001</field>
+            <field name="brand">TattooLux</field>
+            <field name="sale_price">24.99</field>
+            <field name="cost_price">8.00</field>
+            <field name="description">Premium aftercare cream for tattoo healing. Deep hydration and protection.</field>
+            <field name="weight">50</field>
+            <field name="quantity_available">100</field>
+        </record>
+
+        <record id="product_protective_balm" model="tattoo.product">
+            <field name="name">Protective Balm</field>
+            <field name="code">PROD-002</field>
+            <field name="brand">SkinShield</field>
+            <field name="sale_price">19.99</field>
+            <field name="cost_price">6.00</field>
+            <field name="description">Protective balm with natural ingredients for optimal scarring.</field>
+            <field name="weight">30</field>
+            <field name="quantity_available">150</field>
+        </record>
+
+        <record id="product_healing_lotion" model="tattoo.product">
+            <field name="name">Healing Lotion</field>
+            <field name="code">PROD-003</field>
+            <field name="brand">InkCare</field>
+            <field name="sale_price">21.99</field>
+            <field name="cost_price">7.00</field>
+            <field name="description">Healing lotion specially formulated for fresh tattoos.</field>
+            <field name="weight">60</field>
+            <field name="quantity_available">120</field>
+        </record>
+
+        <!-- Customers -->
+        <record id="customer_john_doe" model="tattoo.customer">
+            <field name="name">John Doe</field>
+            <field name="email">john.doe@example.com</field>
+            <field name="phone">+34 666 000 001</field>
+            <field name="city">Madrid</field>
+            <field name="customer_since" eval="datetime.today().date()"/>
+        </record>
+
+        <record id="customer_jane_smith" model="tattoo.customer">
+            <field name="name">Jane Smith</field>
+            <field name="email">jane.smith@example.com</field>
+            <field name="phone">+34 666 000 002</field>
+            <field name="city">Barcelona</field>
+            <field name="customer_since" eval="datetime.today().date()"/>
+        </record>
+
+        <!-- Artists -->
+        <record id="artist_carlos" model="tattoo.artist">
+            <field name="name">Carlos Martínez</field>
+            <field name="email">carlos@tattoostudio.com</field>
+            <field name="phone">+34 666 111 111</field>
+            <field name="specialization">Realism in Black and White</field>
+            <field name="years_of_experience">12</field>
+            <field name="biography">Expert in realistic tattoos with incredible details. My passion is creating works of art on skin.</field>
+            <field name="skill_ids" eval="[(4, ref('skill_realism'))]"/>
+            <field name="service_ids" eval="[(4, ref('service_small')), (4, ref('service_medium')), (4, ref('service_large'))]"/>
+        </record>
+
+        <record id="artist_luna" model="tattoo.artist">
+            <field name="name">Luna González</field>
+            <field name="email">luna@tattoostudio.com</field>
+            <field name="phone">+34 666 111 112</field>
+            <field name="specialization">Minimalist Tattoos</field>
+            <field name="years_of_experience">8</field>
+            <field name="biography">I create simple but impactful designs that speak for themselves. Less is more.</field>
+            <field name="skill_ids" eval="[(4, ref('skill_minimalism'))]"/>
+            <field name="service_ids" eval="[(4, ref('service_small')), (4, ref('service_medium'))]"/>
+        </record>
+
+        <record id="artist_david" model="tattoo.artist">
+            <field name="name">David Silva</field>
+            <field name="email">david@tattoostudio.com</field>
+            <field name="phone">+34 666 111 113</field>
+            <field name="specialization">Traditional and Neo-Traditional</field>
+            <field name="years_of_experience">10</field>
+            <field name="biography">Specialist in classic tattoos with a modern touch. Vibrant colors and precise lines.</field>
+            <field name="skill_ids" eval="[(4, ref('skill_traditional'))]"/>
+            <field name="service_ids" eval="[(4, ref('service_medium')), (4, ref('service_large'))]"/>
+        </record>
+    </data>
+</odoo>

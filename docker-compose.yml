@@ -1,0 +1,40 @@
+services:
+  odootattoo:
+    build: .
+    container_name: odootattoo
+    depends_on:
+      - db_test_15
+    env_file: .env
+    restart: always
+    ports:
+      - "8009:8069"
+      - "6009:8072"
+
+    volumes:
+      - odoo-test-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+      - ./config/odoo.conf:/etc/odoo/odoo.conf
+      - ./logs:/var/log/odoo
+    networks:
+      - odoo-test-net
+
+  db_test_15:
+    image: pgvector/pgvector:pg17
+    env_file: .env
+    restart: always
+    ports:
+      - "5209:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./postgres-config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./postgres-config/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - odoo-test-net
+
+networks:
+  odoo-test-net:
+    driver: bridge
+
+volumes:
+  odoo-test-data:
+  postgres-test-data:

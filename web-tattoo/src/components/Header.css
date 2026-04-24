@@ -1,0 +1,170 @@
+/* Header Styles */
+.header {
+  background-color: var(--primary-black);
+  border-bottom: 2px solid var(--accent-gold);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+  letter-spacing: 2px;
+}
+
+.logo:hover .logo-text {
+  color: var(--accent-silver);
+  text-shadow: 0 2px 10px rgba(192, 192, 192, 0.3);
+}
+
+/* Navegación */
+.nav {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav a {
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  position: relative;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: var(--accent-gold);
+  transition: width 0.3s ease;
+}
+
+.nav a:hover {
+  color: var(--accent-gold);
+}
+
+.nav a:hover::after {
+  width: 100%;
+}
+
+/* Acciones Header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cart-btn {
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+  padding: 0.5rem;
+}
+
+.cart-btn:hover {
+  color: var(--accent-silver);
+  transform: scale(1.1);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--error);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Botón menú móvil */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  transition: var(--transition);
+}
+
+.menu-toggle:hover {
+  color: var(--accent-silver);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    position: relative;
+  }
+
+  .nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--primary-dark);
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    justify-content: flex-start;
+  }
+
+  .nav.open {
+    max-height: 400px;
+  }
+
+  .nav a::after {
+    display: none;
+  }
+
+  .nav a:hover {
+    padding-left: 1rem;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+  }
+}

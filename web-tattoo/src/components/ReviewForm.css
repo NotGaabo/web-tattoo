@@ -1,0 +1,148 @@
+/* ReviewForm Styles */
+.review-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.review-form-modal {
+  background-color: var(--primary-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.review-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.review-form-header h3 {
+  margin: 0;
+  color: var(--accent-gold);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.close-btn:hover {
+  color: var(--accent-gold);
+}
+
+/* Formulario */
+.review-form {
+  padding: 1.5rem;
+}
+
+/* Rating */
+.star-rating {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.star-btn:hover,
+.star-btn.active {
+  color: var(--accent-gold);
+}
+
+.star-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rating-label {
+  display: block;
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* Textarea */
+textarea {
+  font-family: inherit;
+}
+
+.char-count {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* Acciones */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .review-form-overlay {
+    padding: 0;
+  }
+
+  .review-form-modal {
+    border-radius: 0;
+    max-height: 100vh;
+  }
+
+  .star-rating {
+    gap: 0.5rem;
+  }
+
+  .star-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

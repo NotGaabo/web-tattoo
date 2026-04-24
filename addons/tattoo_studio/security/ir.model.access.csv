@@ -1,0 +1,19 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tattoo_customer_user,tattoo.customer user,model_tattoo_customer,base.group_user,1,1,1,0
+access_tattoo_customer_manager,tattoo.customer manager,model_tattoo_customer,base.group_erp_manager,1,1,1,1
+access_tattoo_product_user,tattoo.product user,model_tattoo_product,base.group_user,1,0,0,0
+access_tattoo_product_manager,tattoo.product manager,model_tattoo_product,base.group_erp_manager,1,1,1,1
+access_tattoo_service_user,tattoo.service user,model_tattoo_service,base.group_user,1,0,0,0
+access_tattoo_service_manager,tattoo.service manager,model_tattoo_service,base.group_erp_manager,1,1,1,1
+access_tattoo_artist_user,tattoo.artist user,model_tattoo_artist,base.group_user,1,0,0,0
+access_tattoo_artist_manager,tattoo.artist manager,model_tattoo_artist,base.group_erp_manager,1,1,1,1
+access_tattoo_order_user,tattoo.order user,model_tattoo_order,base.group_user,1,1,1,0
+access_tattoo_order_manager,tattoo.order manager,model_tattoo_order,base.group_erp_manager,1,1,1,1
+access_tattoo_order_line_user,tattoo.order.line user,model_tattoo_order_line,base.group_user,1,1,1,1
+access_tattoo_appointment_user,tattoo.appointment user,model_tattoo_appointment,base.group_user,1,1,1,0
+access_tattoo_appointment_manager,tattoo.appointment manager,model_tattoo_appointment,base.group_erp_manager,1,1,1,1
+access_tattoo_review_user,tattoo.review user,model_tattoo_review,base.group_user,1,1,1,0
+access_tattoo_review_manager,tattoo.review manager,model_tattoo_review,base.group_erp_manager,1,1,1,1
+access_tattoo_skill_manager,tattoo.skill manager,model_tattoo_skill,base.group_erp_manager,1,1,1,1
+access_tattoo_portfolio_user,tattoo.portfolio.image user,model_tattoo_portfolio_image,base.group_user,1,0,0,0
+access_tattoo_portfolio_manager,tattoo.portfolio.image manager,model_tattoo_portfolio_image,base.group_erp_manager,1,1,1,1
