@@ -1,0 +1,128 @@
+.auth-page {
+  position: relative;
+}
+
+.auth-hero {
+  padding: 4rem 0 5rem;
+}
+
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.auth-copy,
+.auth-card {
+  background: var(--panel-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px);
+}
+
+.auth-copy {
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-copy::after {
+  content: '';
+  position: absolute;
+  inset: auto -10% -30% auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 106, 50, 0.26), transparent 70%);
+}
+
+.auth-copy h1 {
+  margin-bottom: 1rem;
+}
+
+.auth-pill-list {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.auth-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  background: rgba(239, 226, 207, 0.03);
+  border: 1px solid rgba(239, 226, 207, 0.08);
+  color: var(--text-light);
+}
+
+.auth-pill svg {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.auth-side-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.auth-card {
+  padding: 1.6rem;
+}
+
+.auth-switch {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 0.4rem;
+  margin-bottom: 1.4rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.auth-switch button {
+  border: 0;
+  border-radius: 16px;
+  padding: 0.95rem 1rem;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.auth-switch button.active {
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-blood));
+  color: var(--primary-black);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.auth-form-row {
+  gap: 1rem;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.auth-note {
+  margin-top: 1rem;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 960px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+}

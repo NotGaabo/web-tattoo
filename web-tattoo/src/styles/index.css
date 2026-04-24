@@ -1,25 +1,27 @@
-/* ============================================
-   Global Styles - Tattoo Studio Theme
-   Colors: Negro, Dorado, Plateado
-   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 :root {
-  --primary-dark: #1a1a1a;
-  --primary-black: #0a0a0a;
-  --accent-gold: #d4af37;
-  --accent-silver: #c0c0c0;
-  --text-light: #e8e8e8;
-  --text-muted: #a8a8a8;
-  --bg-dark: #121212;
-  --bg-darker: #0f0f0f;
-  --border-color: #2a2a2a;
-  --success: #4caf50;
-  --error: #f44336;
-  --warning: #ff9800;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --primary-black: #050505;
+  --primary-dark: #0b0b0b;
+  --bg-dark: #060606;
+  --bg-darker: #020202;
+  --panel-surface: linear-gradient(160deg, rgba(18, 18, 18, 0.96), rgba(5, 5, 5, 0.94));
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(212, 170, 90, 0.3);
+  --accent-gold: #d4aa5a;
+  --accent-silver: #c8c4bd;
+  --accent-blood: #7c6130;
+  --text-light: #f4f1ec;
+  --text-muted: #8a877f;
+  --success: #5cb374;
+  --error: #ce4838;
+  --warning: #df9a3a;
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 30px 60px rgba(0, 0, 0, 0.36);
+  --transition: all 0.28s ease;
 }
 
 * {
@@ -33,31 +35,40 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-dark);
+  font-family: 'Manrope', sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(212, 170, 90, 0.12), transparent 26%),
+    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.08), transparent 20%),
+    linear-gradient(180deg, #050505 0%, #080808 55%, #020202 100%);
   color: var(--text-light);
   line-height: 1.6;
+  min-width: 320px;
+  text-rendering: optimizeLegibility;
 }
 
-/* Typography */
+#root {
+  min-height: 100vh;
+}
+
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.06em;
+  line-height: 0.98;
+  margin-bottom: 0.7rem;
 }
 
 h1 {
-  font-size: 3rem;
-  color: var(--accent-gold);
-  text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2);
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  color: var(--accent-silver);
 }
 
 h2 {
-  font-size: 2.5rem;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
   color: var(--accent-silver);
 }
 
 h3 {
-  font-size: 1.75rem;
+  font-size: clamp(1.5rem, 2.6vw, 2.3rem);
   color: var(--text-light);
 }
 
@@ -70,6 +81,10 @@ p {
   color: var(--text-muted);
 }
 
+a, button, input, textarea, select {
+  font-family: inherit;
+}
+
 a {
   color: var(--accent-gold);
   text-decoration: none;
@@ -80,53 +95,53 @@ a:hover {
   color: var(--accent-silver);
 }
 
-/* Buttons */
 .btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.9rem 1.45rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .btn-primary {
-  background-color: var(--accent-gold);
-  color: var(--primary-black);
+  background: linear-gradient(135deg, #f2cf8b, var(--accent-gold), var(--accent-blood));
+  color: #111111;
+  box-shadow: 0 16px 30px rgba(212, 170, 90, 0.18);
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-silver);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(212, 170, 90, 0.26);
 }
 
 .btn-secondary {
-  background-color: var(--primary-dark);
-  color: var(--accent-gold);
-  border: 2px solid var(--accent-gold);
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--accent-silver);
+  border-color: rgba(239, 226, 207, 0.14);
 }
 
 .btn-secondary:hover {
-  background-color: var(--accent-gold);
-  color: var(--primary-black);
-}
-
-.btn-dark {
-  background-color: var(--primary-black);
-  color: var(--text-light);
-  border: 1px solid var(--border-color);
-}
-
-.btn-dark:hover {
-  background-color: var(--primary-dark);
   border-color: var(--accent-gold);
+  color: var(--accent-gold);
 }
 
-/* Forms */
+.btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover {
+  color: var(--accent-silver);
+}
+
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -135,16 +150,16 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   color: var(--text-light);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 input, textarea, select {
   width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: var(--primary-dark);
+  padding: 0.95rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-light);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 16px;
   font-size: 1rem;
   transition: var(--transition);
 }
@@ -152,7 +167,7 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 0 3px rgba(201, 106, 50, 0.12);
 }
 
 textarea {
@@ -160,11 +175,10 @@ textarea {
   min-height: 120px;
 }
 
-/* Cards */
 .card {
-  background-color: var(--primary-dark);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background: var(--panel-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
   padding: 1.5rem;
   transition: var(--transition);
 }
@@ -174,7 +188,6 @@ textarea {
   box-shadow: var(--shadow-md);
 }
 
-/* Grid */
 .grid {
   display: grid;
   gap: 2rem;
@@ -192,66 +205,75 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-/* Container */
 .container {
-  max-width: 1200px;
+  width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 0 1.5rem;
 }
 
-/* Utils */
-.text-center {
-  text-align: center;
-}
-
-.text-gold {
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   color: var(--accent-gold);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-.text-silver {
-  color: var(--accent-silver);
+.eyebrow::before {
+  content: '';
+  width: 2.4rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-gold), transparent);
 }
 
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mt-4 { margin-top: 2rem; }
+.section-title {
+  text-align: center;
+  margin-bottom: 1rem;
+}
 
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 2rem; }
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
 
-.p-1 { padding: 0.5rem; }
-.p-2 { padding: 1rem; }
-.p-3 { padding: 1.5rem; }
-.p-4 { padding: 2rem; }
-
-/* Loading state */
 .loading {
   opacity: 0.6;
   pointer-events: none;
 }
 
-/* Responsive */
+.home-page {
+  overflow-x: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   h1 {
-    font-size: 2rem;
+    font-size: 2.8rem;
   }
 
   h2 {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
 
   h3 {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
   }
 
   .grid-2, .grid-3, .grid-4 {
     grid-template-columns: 1fr;
   }
 
-  .container {
-    padding: 0 1rem;
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }

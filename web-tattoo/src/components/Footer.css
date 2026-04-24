@@ -1,9 +1,10 @@
-/* Footer Styles */
 .footer {
-  background-color: var(--primary-black);
+  background:
+    linear-gradient(180deg, rgba(9, 8, 7, 0), rgba(9, 8, 7, 0.94) 22%),
+    #090807;
   color: var(--text-light);
-  border-top: 2px solid var(--accent-gold);
-  padding: 3rem 0 1rem;
+  border-top: 1px solid rgba(239, 226, 207, 0.08);
+  padding: 4rem 0 1.2rem;
   margin-top: 4rem;
 }
 
@@ -20,17 +21,10 @@
   margin-bottom: 1rem;
 }
 
-.footer-section p {
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
 .footer-section ul {
   list-style: none;
-}
-
-.footer-section ul li {
-  margin-bottom: 0.5rem;
+  display: grid;
+  gap: 0.55rem;
 }
 
 .footer-section a {
@@ -43,7 +37,6 @@
   color: var(--accent-gold);
 }
 
-/* Social Links */
 .social-links {
   display: flex;
   gap: 1rem;
@@ -54,20 +47,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border-color);
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(239, 226, 207, 0.1);
   border-radius: 50%;
-  transition: var(--transition);
+  color: var(--accent-silver);
 }
 
 .social-links a:hover {
-  background-color: var(--accent-gold);
-  color: var(--primary-black);
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-blood));
+  color: white;
   border-color: var(--accent-gold);
 }
 
-/* Contact Info */
 .contact-info {
   display: flex;
   flex-direction: column;
@@ -87,9 +79,8 @@
   flex-shrink: 0;
 }
 
-/* Footer Bottom */
 .footer-bottom {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(239, 226, 207, 0.08);
   padding-top: 1.5rem;
   text-align: center;
   color: var(--text-muted);
@@ -98,12 +89,7 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: 2rem 0 1rem;
-    margin-top: 2rem;
-  }
-
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    padding: 2.5rem 0 1rem;
+    margin-top: 2.5rem;
   }
 }

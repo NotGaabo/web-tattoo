@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiArrowRight, FiClock, FiPalette } from 'react-icons/fi';
+import { FiArrowRight, FiClock, FiDroplet } from 'react-icons/fi';
 import { useUIStore } from '../context/store';
 import './Services.css';
 
@@ -201,7 +201,7 @@ export default function Services() {
                     <span>{service.estimatedTime}</span>
                   </div>
                   <div className="detail-item">
-                    <FiPalette size={18} />
+                    <FiDroplet size={18} />
                     <span>{service.colors.join(', ')}</span>
                   </div>
                 </div>

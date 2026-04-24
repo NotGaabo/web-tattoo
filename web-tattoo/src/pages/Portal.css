@@ -1,0 +1,107 @@
+.portal-page {
+  display: grid;
+  gap: 2rem;
+  padding-bottom: 3rem;
+}
+
+.portal-hero {
+  padding-top: 2rem;
+}
+
+.portal-hero-card {
+  padding: 2.6rem;
+  background:
+    radial-gradient(circle at top right, rgba(201, 106, 50, 0.22), transparent 26%),
+    linear-gradient(155deg, rgba(239, 226, 207, 0.06), rgba(239, 226, 207, 0.02));
+  border: 1px solid var(--border-subtle);
+  border-radius: 30px;
+  box-shadow: var(--shadow-lg);
+}
+
+.portal-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.portal-card {
+  padding: 1.4rem;
+  border-radius: 22px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(17, 14, 12, 0.82);
+  box-shadow: var(--shadow-md);
+}
+
+.portal-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.portal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: rgba(201, 106, 50, 0.12);
+  color: var(--accent-gold);
+}
+
+.portal-badge {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(239, 226, 207, 0.05);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.portal-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.portal-steps div {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(239, 226, 207, 0.07);
+}
+
+.portal-note {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background: rgba(201, 106, 50, 0.08);
+}
+
+.portal-note svg {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+@media (max-width: 960px) {
+  .portal-grid,
+  .portal-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-hero-card {
+    padding: 2rem;
+  }
+}

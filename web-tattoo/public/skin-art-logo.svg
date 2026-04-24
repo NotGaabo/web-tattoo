@@ -1,0 +1,13 @@
+<svg width="900" height="360" viewBox="0 0 900 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="360" fill="black"/>
+  <path d="M129 60C150 34 183 18 220 18C271 18 314 49 331 95" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M332 96C338 112 341 129 341 147C341 214 287 268 220 268C193 268 168 259 147 243" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M95 147H340" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M221 38L286 214" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M221 38L156 214" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M116 241C98 216 88 185 88 152" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M170 147L247 147" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <path d="M88 147C88 78 143 22 212 22" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+  <text x="448" y="214" fill="white" font-family="Montserrat, Arial, sans-serif" font-size="58" font-weight="300" letter-spacing="10">SKIN ART TATTOO</text>
+  <line x1="448" y1="244" x2="860" y2="244" stroke="white" stroke-width="2"/>
+</svg>
