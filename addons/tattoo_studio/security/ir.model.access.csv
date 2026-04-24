@@ -1,8 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tattoo_customer_user,tattoo.customer user,model_tattoo_customer,base.group_user,1,1,1,0
 access_tattoo_customer_manager,tattoo.customer manager,model_tattoo_customer,base.group_erp_manager,1,1,1,1
-access_tattoo_product_user,tattoo.product user,model_tattoo_product,base.group_user,1,0,0,0
-access_tattoo_product_manager,tattoo.product manager,model_tattoo_product,base.group_erp_manager,1,1,1,1
 access_tattoo_service_user,tattoo.service user,model_tattoo_service,base.group_user,1,0,0,0
 access_tattoo_service_manager,tattoo.service manager,model_tattoo_service,base.group_erp_manager,1,1,1,1
 access_tattoo_artist_user,tattoo.artist user,model_tattoo_artist,base.group_user,1,0,0,0

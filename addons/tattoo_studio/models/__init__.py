@@ -7,3 +7,4 @@ from . import artist
 from . import order
 from . import appointment
 from . import review
+from . import user

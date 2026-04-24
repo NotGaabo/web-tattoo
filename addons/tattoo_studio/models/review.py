@@ -23,7 +23,7 @@ class TattooReview(models.Model):
     ], string='Review Type', required=True)
     
     # Referencias (solo una será usada según review_type)
-    product_id = fields.Many2one('tattoo.product', string='Product', ondelete='cascade')
+    product_id = fields.Many2one('product.template', string='Product', ondelete='cascade')
     service_id = fields.Many2one('tattoo.service', string='Service', ondelete='cascade')
     artist_id = fields.Many2one('tattoo.artist', string='Artist', ondelete='cascade')
     
