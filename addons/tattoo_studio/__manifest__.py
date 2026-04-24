@@ -16,10 +16,12 @@
         - Appointments scheduling
     """,
     'author': 'Tattoo Studio',
+    'sequence':5,
     'website': 'https://tattoostudio.com',
-    'depends': ['base', 'sale', 'stock', 'purchase'],
+    'depends': ['base', 'sale', 'stock', 'purchase', 'product', 'auth_signup'],
     'installable': True,
     'auto_install': False,
+    'application': True,
     'data': [
         # Security
         'security/ir.model.access.csv',

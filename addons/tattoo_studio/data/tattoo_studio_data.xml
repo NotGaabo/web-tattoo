@@ -56,37 +56,34 @@
         </record>
 
         <!-- Products -->
-        <record id="product_aftercare_cream" model="tattoo.product">
+        <record id="tmpl_product_aftercare_cream" model="product.template">
             <field name="name">Premium Aftercare Cream</field>
             <field name="code">PROD-001</field>
             <field name="brand">TattooLux</field>
-            <field name="sale_price">24.99</field>
-            <field name="cost_price">8.00</field>
+            <field name="list_price">24.99</field>
+            <field name="standard_price">8.00</field>
             <field name="description">Premium aftercare cream for tattoo healing. Deep hydration and protection.</field>
             <field name="weight">50</field>
-            <field name="quantity_available">100</field>
         </record>
 
-        <record id="product_protective_balm" model="tattoo.product">
+        <record id="tmpl_product_protective_balm" model="product.template">
             <field name="name">Protective Balm</field>
             <field name="code">PROD-002</field>
             <field name="brand">SkinShield</field>
-            <field name="sale_price">19.99</field>
-            <field name="cost_price">6.00</field>
+            <field name="list_price">19.99</field>
+            <field name="standard_price">6.00</field>
             <field name="description">Protective balm with natural ingredients for optimal scarring.</field>
             <field name="weight">30</field>
-            <field name="quantity_available">150</field>
         </record>
 
-        <record id="product_healing_lotion" model="tattoo.product">
+        <record id="tmpl_product_healing_lotion" model="product.template">
             <field name="name">Healing Lotion</field>
             <field name="code">PROD-003</field>
             <field name="brand">InkCare</field>
-            <field name="sale_price">21.99</field>
-            <field name="cost_price">7.00</field>
+            <field name="list_price">21.99</field>
+            <field name="standard_price">7.00</field>
             <field name="description">Healing lotion specially formulated for fresh tattoos.</field>
             <field name="weight">60</field>
-            <field name="quantity_available">120</field>
         </record>
 
         <!-- Customers -->

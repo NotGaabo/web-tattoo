@@ -132,7 +132,7 @@ class TattooOrderLine(models.Model):
     _description = 'Tattoo Order Line'
 
     order_id = fields.Many2one('tattoo.order', string='Order', required=True, ondelete='cascade')
-    product_id = fields.Many2one('tattoo.product', string='Product', required=True)
+    product_id = fields.Many2one('product.template', string='Product', required=True)
     
     # Cantidad y precios
     quantity = fields.Integer(string='Quantity', default=1)
@@ -147,7 +147,7 @@ class TattooOrderLine(models.Model):
     def _compute_unit_price(self):
         """Obtiene el precio del producto"""
         for line in self:
-            line.unit_price = line.product_id.sale_price if line.product_id else 0
+            line.unit_price = line.product_id.list_price if line.product_id else 0
 
     @api.depends('quantity', 'unit_price', 'discount_percentage')
     def _compute_subtotal(self):
