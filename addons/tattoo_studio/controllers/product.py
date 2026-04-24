@@ -50,6 +50,17 @@ class TattooProductController(http.Controller):
             }, status=401)
         return user, None
 
+    def _require_internal_user(self):
+        user, error_response = self._require_user()
+        if error_response:
+            return False, error_response
+        if user.share:
+            return False, self._response({
+                'success': False,
+                'message': 'forbidden',
+            }, status=403)
+        return user, None
+
     def _serialize_product(self, product):
         return {
             'id': product.id,
@@ -71,7 +82,7 @@ class TattooProductController(http.Controller):
                 'data': [self._serialize_product(product) for product in products],
             })
 
-        user, error_response = self._require_user()
+        user, error_response = self._require_internal_user()
         if error_response:
             return error_response
 
@@ -117,7 +128,7 @@ class TattooProductController(http.Controller):
                 'data': self._serialize_product(product),
             })
 
-        user, error_response = self._require_user()
+        user, error_response = self._require_internal_user()
         if error_response:
             return error_response
 

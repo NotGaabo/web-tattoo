@@ -4,6 +4,7 @@ import json
 from uuid import uuid4
 
 from odoo import http, fields
+from odoo.exceptions import AccessDenied
 from odoo.http import request
 from werkzeug.wrappers import Response
 
@@ -31,6 +32,27 @@ class TattooAuthController(http.Controller):
 
     def _generate_token(self):
         return uuid4().hex
+
+    def _get_user_role(self, user):
+        if user.share:
+            return 'portal'
+        if user.has_group('base.group_system'):
+            return 'admin'
+        return 'internal'
+
+    def _serialize_user(self, user):
+        role = self._get_user_role(user)
+        return {
+            'id': user.id,
+            'name': user.name,
+            'email': user.login,
+            'phone': user.partner_id.phone or '',
+            'token': user.api_token,
+            'role': role,
+            'user_type': 'portal' if role == 'portal' else 'internal',
+            'is_admin': role == 'admin',
+            'is_portal': role == 'portal',
+        }
 
     @http.route('/api/auth/register', type='http', auth='public', methods=['POST', 'OPTIONS'], csrf=False)
     def register(self, **kwargs):
@@ -64,6 +86,7 @@ class TattooAuthController(http.Controller):
         }
 
         user = Users.create(user_vals)
+        user.sudo().write({'share': True})
         partner_values = {'email': email}
         if phone:
             partner_values['phone'] = phone
@@ -72,13 +95,7 @@ class TattooAuthController(http.Controller):
         return self._response({
             'success': True,
             'message': 'account created',
-            'data': {
-                'id': user.id,
-                'name': user.name,
-                'email': user.login,
-                'phone': user.partner_id.phone or '',
-                'token': user.api_token,
-            }
+            'data': self._serialize_user(user),
         }, status=201)
 
     @http.route('/api/auth/login', type='http', auth='public', methods=['POST', 'OPTIONS'], csrf=False)
@@ -96,11 +113,27 @@ class TattooAuthController(http.Controller):
                 'message': 'email and password are required',
             }, status=400)
 
-        auth_info = request.session.authenticate(request.env, {
-            'type': 'password',
-            'login': email,
-            'password': password,
-        })
+        user = request.env['res.users'].sudo().search([
+            ('login', '=', email)
+        ], limit=1)
+        if not user:
+            return self._response({
+                'success': False,
+                'message': 'invalid credentials',
+            }, status=401)
+
+        try:
+            auth_info = user.with_user(user)._check_credentials({
+                'type': 'password',
+                'login': email,
+                'password': password,
+            }, {'interactive': True})
+        except AccessDenied:
+            return self._response({
+                'success': False,
+                'message': 'invalid credentials',
+            }, status=401)
+
         uid = auth_info.get('uid')
         if not uid:
             return self._response({
@@ -109,6 +142,7 @@ class TattooAuthController(http.Controller):
             }, status=401)
 
         user = request.env['res.users'].sudo().browse(uid)
+
         token = self._generate_token()
         user.write({
             'api_token': token,
@@ -118,10 +152,7 @@ class TattooAuthController(http.Controller):
             'success': True,
             'message': 'login successful',
             'data': {
-                'id': user.id,
-                'name': user.name,
-                'email': user.login,
-                'phone': user.partner_id.phone or '',
+                **self._serialize_user(user),
                 'token': token,
                 'login_date': fields.Datetime.now(),
             }
@@ -142,12 +173,7 @@ class TattooAuthController(http.Controller):
 
         return self._response({
             'success': True,
-            'data': {
-                'id': user.id,
-                'name': user.name,
-                'email': user.login,
-                'phone': user.partner_id.phone or '',
-            }
+            'data': self._serialize_user(user),
         })
 
     def _extract_token(self):
