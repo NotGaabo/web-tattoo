@@ -23,7 +23,7 @@ export default function Auth() {
   const [mode, setMode] = useState(defaultMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginData, setLoginData] = useState({
-    login: '',
+    email: '',
     password: '',
   });
   const [registerData, setRegisterData] = useState({
@@ -50,7 +50,7 @@ export default function Auth() {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    if (!loginData.login || !loginData.password) {
+    if (!loginData.email || !loginData.password) {
       showNotification('Escribe tu correo y tu contrasena para entrar.', 'warning');
       return;
     }
@@ -58,12 +58,15 @@ export default function Auth() {
     setIsSubmitting(true);
 
     try {
-      const session = await odooAuthService.login(loginData);
+      const session = await odooAuthService.login({
+        login: loginData.email,
+        password: loginData.password,
+      });
       setSession(session);
       showNotification('Sesion iniciada. Bienvenido al portal.', 'success');
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      showNotification(error.message || 'No se pudo iniciar sesion con Odoo.', 'error');
+      showNotification(error.message || 'No se pudo iniciar sesion.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -163,12 +166,12 @@ export default function Auth() {
             {mode === 'login' ? (
               <form className="auth-form" onSubmit={handleLogin}>
                 <div className="form-group">
-                  <label htmlFor="login">Correo</label>
+                  <label htmlFor="email">Correo</label>
                   <input
-                    id="login"
+                    id="email"
                     type="email"
-                    name="login"
-                    value={loginData.login}
+                    name="email"
+                    value={loginData.email}
                     onChange={handleLoginChange}
                     placeholder="cliente@inkhouse.com"
                     disabled={isSubmitting}

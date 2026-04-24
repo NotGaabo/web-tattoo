@@ -315,43 +315,42 @@ function buildFallbackData() {
 }
 
 async function fetchArtistsFromApi() {
-  const artists = await tattooArtistService.getAll();
+  try {
+    const response = await tattooArtistService.getAll();
+    
+    // Manejar estructura de respuesta { success, data }
+    const artistsList = response?.data || response || [];
+    
+    if (!Array.isArray(artistsList) || !artistsList.length) {
+      return [];
+    }
 
-  if (!Array.isArray(artists) || !artists.length) {
+    // Mapear directamente sin llamar a getProfile (evita errores innecesarios)
+    return artistsList.map((artist, index) => normalizeArtistRecord(artist, index));
+  } catch (error) {
+    console.error('Error fetching artists from API:', error);
     return [];
   }
-
-  const profiles = await Promise.all(
-    artists.map(async (artist) => {
-      if (!artist?.id) {
-        return artist;
-      }
-
-      try {
-        const profile = await tattooArtistService.getProfile(artist.id);
-        return { ...artist, ...profile };
-      } catch (error) {
-        return artist;
-      }
-    }),
-  );
-
-  return profiles.map((artist, index) => normalizeArtistRecord(artist, index));
 }
 
 async function fetchAvailability(artists) {
-  const entries = await Promise.all(
-    artists.map(async (artist) => {
-      try {
-        const slots = await appointmentService.getAvailable(artist.id);
-        return [artist.id, slots];
-      } catch (error) {
-        return [artist.id, []];
-      }
-    }),
-  );
+  try {
+    const entries = await Promise.all(
+      artists.map(async (artist) => {
+        try {
+          const slots = await appointmentService.getAvailable?.(artist.id);
+          return [artist.id, slots || []];
+        } catch (error) {
+          return [artist.id, []];
+        }
+      }),
+    );
 
-  return new Map(entries);
+    return new Map(entries);
+  } catch (error) {
+    console.error('Error fetching availability:', error);
+    return new Map();
+  }
 }
 
 export async function loadStudioMcpData() {

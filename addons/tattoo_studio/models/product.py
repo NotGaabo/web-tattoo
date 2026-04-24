@@ -6,46 +6,46 @@ class TattooProduct(models.Model):
     """
     Modelo para productos (suplementos y cuidados de tatuajes)
     """
-    _name = 'tattoo.product'
+    _inherit = 'product.template'
     _description = 'Tattoo Supplement Product'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     # Información básica
-    name = fields.Char(string='Product Name', required=True, track_visibility='onchange')
-    code = fields.Char(string='Product Code', unique=True)
+    code = fields.Char(string='Product Code')
     brand = fields.Char(string='Brand')
-    
+
     # Descripción
-    description = fields.Text(string='Description')
+    description = fields.Text(string='Description', related='description_sale', readonly=False)
     usage_instructions = fields.Html(string='Usage Instructions')
-    
+
     # Precios
-    cost_price = fields.Float(string='Cost Price')
-    sale_price = fields.Float(string='Sale Price', required=True)
-    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.company.currency_id)
-    
+    cost_price = fields.Float(string='Cost Price', related='standard_price', readonly=False)
+    sale_price = fields.Float(string='Sale Price', related='list_price', readonly=False)
+
     # Inventario
-    quantity_available = fields.Integer(string='Available Quantity', compute='_compute_quantity')
-    quantity_reserved = fields.Integer(string='Reserved Quantity')
-    
+    quantity_available = fields.Float(string='Available Quantity', compute='_compute_quantity')
+    quantity_reserved = fields.Float(string='Reserved Quantity', default=0.0)
+
     # Categoría
     category_id = fields.Many2one('product.category', string='Category')
-    
+
     # Información adicional
     weight = fields.Float(string='Weight (g)')
     volume = fields.Float(string='Volume (ml)')
-    
-    # Estado
-    active = fields.Boolean(default=True)
-    
+
     # Relaciones
     order_line_ids = fields.One2many('tattoo.order.line', 'product_id', string='Order Lines')
     review_ids = fields.One2many('tattoo.review', 'product_id', string='Reviews')
-    
+
     # Estadísticas
     average_rating = fields.Float(string='Average Rating', compute='_compute_average_rating', store=True)
     total_reviews = fields.Integer(string='Total Reviews', compute='_compute_total_reviews', store=True)
     total_sales = fields.Float(string='Total Sales', compute='_compute_total_sales', store=True)
+
+    @api.depends('qty_available')
+    def _compute_quantity(self):
+        """Mantiene un alias legible para la cantidad disponible de Odoo."""
+        for product in self:
+            product.quantity_available = product.qty_available
 
     @api.depends('review_ids.rating')
     def _compute_average_rating(self):
@@ -72,7 +72,7 @@ class TattooProduct(models.Model):
             'id': self.id,
             'name': self.name,
             'brand': self.brand,
-            'price': self.sale_price,
+            'price': self.list_price,
             'description': self.description or '',
             'rating': self.average_rating,
             'reviewCount': self.total_reviews,
