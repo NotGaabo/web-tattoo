@@ -12,6 +12,22 @@ export default function Cart() {
   const { items, total, removeItem, updateQuantity, clearCart } = useCartStore();
   const { isCartOpen, toggleCart } = useUIStore();
 
+  const renderItemImage = (item) => {
+    const hasImageSrc =
+      typeof item.image === 'string' &&
+      (item.image.startsWith('http') || item.image.startsWith('/') || item.image.startsWith('data:'));
+
+    if (hasImageSrc) {
+      return <img src={item.image} alt={item.name} className="item-image" />;
+    }
+
+    return (
+      <div className="item-image item-image-fallback" aria-hidden="true">
+        <span>{item.image || 'INK'}</span>
+      </div>
+    );
+  };
+
   return (
     <AnimatePresence>
       {isCartOpen && (
@@ -58,8 +74,7 @@ export default function Cart() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                     >
-                      {/* Imagen */}
-                      <img src={item.image} alt={item.name} className="item-image" />
+                      {renderItemImage(item)}
 
                       {/* Info */}
                       <div className="item-info">

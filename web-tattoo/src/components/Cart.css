@@ -105,6 +105,19 @@
   border-radius: 4px;
 }
 
+.item-image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(201, 106, 50, 0.18), rgba(159, 47, 35, 0.18));
+}
+
+.item-image-fallback span {
+  font-family: 'Bebas Neue', sans-serif;
+  color: var(--accent-silver);
+  letter-spacing: 0.08em;
+}
+
 .item-info {
   flex: 1;
 }

@@ -1,73 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiMapPin, FiPhone, FiMail, FiInstagram, FiTwitter, FiFacebook } from 'react-icons/fi';
+import { FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FaFacebookF, FaInstagram, FaXTwitter } from 'react-icons/fa6';
 import './Footer.css';
 
-/**
- * Componente Footer - Información de contacto y enlaces
- */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const secretaryUrl = import.meta.env.VITE_SECRETARY_URL || '/web';
 
   return (
     <footer className="footer">
       <div className="container">
         <div className="footer-content">
-          {/* Información de la empresa */}
           <div className="footer-section">
-            <h4>TATTOO STUDIO</h4>
-            <p>Tu estudio de tatuajes de confianza. Diseños únicos y profesionales.</p>
+            <span className="eyebrow">Ink House</span>
+            <h4>Arte con aguja, portal para clientes y operativa conectada a Odoo.</h4>
+            <p>
+              Un estudio pensado para convertir cotizaciones, reservas y seguimiento en una
+              experiencia mas limpia y mas potente.
+            </p>
             <div className="social-links">
-              <a href="#" aria-label="Instagram"><FiInstagram /></a>
-              <a href="#" aria-label="Twitter"><FiTwitter /></a>
-              <a href="#" aria-label="Facebook"><FiFacebook /></a>
+              <a href="#" aria-label="Instagram"><FaInstagram /></a>
+              <a href="#" aria-label="X"><FaXTwitter /></a>
+              <a href="#" aria-label="Facebook"><FaFacebookF /></a>
             </div>
           </div>
 
-          {/* Enlaces rápidos */}
           <div className="footer-section">
-            <h5>Enlaces Rápidos</h5>
+            <h5>Navegacion</h5>
             <ul>
               <li><Link to="/">Inicio</Link></li>
-              <li><Link to="/products">Productos</Link></li>
+              <li><Link to="/auth?mode=register">Registro portal</Link></li>
+              <li><Link to="/portal">Portal cliente</Link></li>
               <li><Link to="/services">Servicios</Link></li>
-              <li><Link to="/contact">Contacto</Link></li>
+              <li><a href={secretaryUrl}>Area secretaria</a></li>
             </ul>
           </div>
 
-          {/* Contacto */}
           <div className="footer-section">
             <h5>Contacto</h5>
             <div className="contact-info">
               <div className="contact-item">
                 <FiMapPin />
-                <span>Calle Principal 123, Ciudad</span>
+                <span>Av. Ink District 123, Santa Cruz</span>
               </div>
               <div className="contact-item">
                 <FiPhone />
-                <span>+34 666 777 888</span>
+                <span>+591 700 000 00</span>
               </div>
               <div className="contact-item">
                 <FiMail />
-                <span>info@tattoostudio.com</span>
+                <span>portal@inkhouse.studio</span>
               </div>
             </div>
           </div>
 
-          {/* Horarios */}
           <div className="footer-section">
-            <h5>Horarios</h5>
+            <h5>Ritmo del estudio</h5>
             <ul>
-              <li>Lunes - Viernes: 10:00 - 20:00</li>
-              <li>Sábado: 11:00 - 21:00</li>
-              <li>Domingo: Cerrado</li>
+              <li>Lunes a Viernes: 10:00 - 20:00</li>
+              <li>Sabado: 11:00 - 21:00</li>
+              <li>Revision de cotizaciones: 24 horas</li>
             </ul>
           </div>
         </div>
 
-        {/* Copyright */}
         <div className="footer-bottom">
-          <p>&copy; {currentYear} Tattoo Studio. Todos los derechos reservados.</p>
+          <p>&copy; {currentYear} Ink House. Frontend listo para portal, cotizaciones y estilo tattoo.</p>
         </div>
       </div>
     </footer>

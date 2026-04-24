@@ -1,81 +1,51 @@
-/* App Styles */
 .app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg-dark);
+  position: relative;
 }
 
 .main-content {
   flex: 1;
 }
 
-/* 404 Page */
-.not-found-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
+.page-shell {
+  padding: 2rem 0 3rem;
+}
+
+.page-card {
+  padding: 2rem;
+  border-radius: 28px;
+  border: 1px solid var(--border-subtle);
+  background: var(--panel-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.page-card-center {
+  max-width: 700px;
+  margin: 2rem auto 0;
   text-align: center;
 }
 
-.not-found-page h1 {
-  font-size: 5rem;
-  margin-bottom: 1rem;
-}
-
-.not-found-page p {
-  font-size: 1.5rem;
-  color: var(--text-muted);
-  margin-bottom: 2rem;
-}
-
-/* Scrollbar personalizado */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: #0a0908;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-gold);
+  background: linear-gradient(180deg, var(--accent-gold), var(--accent-blood));
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-silver);
+  background: linear-gradient(180deg, var(--accent-blood), var(--accent-gold));
 }
 
-/* Animaciones globales */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .not-found-page h1 {
-    font-size: 3rem;
-  }
-
-  .not-found-page p {
-    font-size: 1.1rem;
+  .page-card {
+    padding: 1.5rem;
   }
 }

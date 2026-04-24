@@ -19,6 +19,9 @@ import './ProductCard.css';
 export default function ProductCard({ product }) {
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore(state => state.addItem);
+  const hasImageSrc =
+    typeof product.image === 'string' &&
+    (product.image.startsWith('http') || product.image.startsWith('/') || product.image.startsWith('data:'));
 
   const handleAddToCart = () => {
     addItem({
@@ -40,9 +43,14 @@ export default function ProductCard({ product }) {
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Imagen del producto */}
       <div className="product-image">
-        <img src={product.image} alt={product.name} />
+        {hasImageSrc ? (
+          <img src={product.image} alt={product.name} />
+        ) : (
+          <div className="product-image-fallback">
+            <span>{product.image || 'INK'}</span>
+          </div>
+        )}
         {product.discount && (
           <div className="discount-badge">{product.discount}% OFF</div>
         )}
