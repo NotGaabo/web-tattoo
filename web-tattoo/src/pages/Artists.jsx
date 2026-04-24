@@ -1,266 +1,411 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FiStar, FiMapPin } from 'react-icons/fi';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { FiArrowRight, FiCalendar, FiInstagram, FiMapPin, FiStar, FiX } from 'react-icons/fi';
 import ReviewForm from '../components/ReviewForm';
-import './Artists.css';
+import { useStudioMcp } from '../context/StudioMcpContext';
 
-/**
- * Página de tatuadores
- */
+const GOLD = '#D4AA5A';
+const FONT = 'Inter, system-ui, sans-serif';
+const MUTED = 'rgba(255,255,255,0.4)';
+
+function PortfolioCard({ piece }) {
+  return (
+    <div
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: '0.5px solid rgba(255,255,255,0.08)',
+        position: 'relative',
+        aspectRatio: '1 / 1',
+        background: '#111',
+      }}
+    >
+      {piece.imageUrl ? (
+        <img
+          src={piece.imageUrl}
+          alt={piece.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s' }}
+        />
+      ) : (
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${piece.tone}`}
+          style={{ position: 'absolute', inset: 0 }}
+        />
+      )}
+      {/* Overlay inferior */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%)',
+        }}
+      />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 11px' }}>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: FONT, textTransform: 'none', letterSpacing: 0, lineHeight: 1.2 }}>
+          {piece.badge}
+        </p>
+        <p style={{ margin: '2px 0 0', fontSize: 9, color: 'rgba(255,255,255,0.5)', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          {piece.title}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Artists() {
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
-
-  // Datos de ejemplo
-  const mockArtists = [
-    {
-      id: 1,
-      name: 'Carlos Martínez',
-      specialty: 'Realismo en Blanco y Negro',
-      image: '👨‍🎨',
-      rating: 4.9,
-      reviewCount: 145,
-      experience: '12 años',
-      location: 'Local Principal',
-      skills: ['Realismo', 'Retrato', 'Blanco y Negro'],
-      portfolio: ['🖼️', '🖼️', '🖼️', '🖼️'],
-      description: 'Experto en tatuajes realistas con increíbles detalles. Mi pasión es crear obras de arte en la piel.'
-    },
-    {
-      id: 2,
-      name: 'Luna González',
-      specialty: 'Tatuajes Minimalistas',
-      image: '👩‍🎨',
-      rating: 4.8,
-      reviewCount: 98,
-      experience: '8 años',
-      location: 'Local Principal',
-      skills: ['Minimalista', 'Geométrico', 'Líneas'],
-      portfolio: ['🖼️', '🖼️', '🖼️', '🖼️'],
-      description: 'Creo diseños simples pero impactantes que hablan por sí solos. Menos es más.'
-    },
-    {
-      id: 3,
-      name: 'David Silva',
-      specialty: 'Tradicional y Neo-Tradicional',
-      image: '👨‍🎨',
-      rating: 4.7,
-      reviewCount: 112,
-      experience: '10 años',
-      location: 'Local Principal',
-      skills: ['Tradicional', 'Neo-Tradicional', 'Color'],
-      portfolio: ['🖼️', '🖼️', '🖼️', '🖼️'],
-      description: 'Especialista en tatuajes clásicos con un toque moderno. Colores vibrantes y líneas precisas.'
-    },
-    {
-      id: 4,
-      name: 'Sofia Ruiz',
-      specialty: 'Acuarela y Fantasía',
-      image: '👩‍🎨',
-      rating: 4.9,
-      reviewCount: 156,
-      experience: '9 años',
-      location: 'Local Principal',
-      skills: ['Acuarela', 'Fantasía', 'Color Abstracto'],
-      portfolio: ['🖼️', '🖼️', '🖼️', '🖼️'],
-      description: 'Creo tatuajes que parecen pinturas acuareladas. Cada pieza es una obra de arte única.'
-    },
-    {
-      id: 5,
-      name: 'Javier López',
-      specialty: 'Biomecánica y Ciencia Ficción',
-      image: '👨‍🎨',
-      rating: 4.6,
-      reviewCount: 87,
-      experience: '11 años',
-      location: 'Local Principal',
-      skills: ['Biomecánica', 'Ciencia Ficción', 'Realismo'],
-      portfolio: ['🖼️', '🖼️', '🖼️', '🖼️'],
-      description: 'Especialista en diseños futuristas y biomecánicos. Mi arte desafía la realidad.'
-    }
-  ];
+  const { artists, appointmentSlots, studio, source, isLoading } = useStudioMcp();
 
   const handleReviewSubmit = (reviewData) => {
-    console.log('Reseña enviada:', reviewData);
-    // Aquí iría la lógica para enviar la reseña a la API
+    console.log('Resena enviada:', reviewData);
   };
 
   return (
-    <div className="artists-page">
-      {/* Header */}
-      <motion.div
-        className="artists-header"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
+    <div style={{ background: '#080808', color: '#E8E8E8', minHeight: '100vh' }}>
+
+      {/* ── Hero ── */}
+      <section
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+          padding: '80px 40px 72px',
+        }}
       >
-        <div className="container">
-          <h1>Nuestros Artistas</h1>
-          <p>Conoce a los talentosos profesionales detrás de cada tatuaje</p>
-        </div>
-      </motion.div>
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse 50% 60% at 5% 50%, rgba(212,170,90,0.1) 0%, transparent 60%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 640 }}>
 
-      <div className="container">
-        {/* Grid de artistas */}
-        <motion.div
-          className="artists-grid"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {mockArtists.map((artist, index) => (
-            <motion.div
-              key={artist.id}
-              className="artist-card"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 * index }}
-              whileHover={{ y: -8 }}
-              onClick={() => setSelectedArtist(artist)}
+            {/* Eyebrow */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: GOLD, marginBottom: 20, fontFamily: FONT }}>
+              <span style={{ display: 'block', width: 28, height: 1, background: GOLD }} />
+              Roster del estudio
+            </div>
+
+            {/* H1 — Inter, no Bebas */}
+            <h1
+              style={{
+                fontFamily: FONT,
+                fontSize: 'clamp(32px, 4vw, 52px)',
+                fontWeight: 800,
+                lineHeight: 1.08,
+                letterSpacing: '-0.025em',
+                textTransform: 'none',
+                color: '#fff',
+                margin: '0 0 20px',
+                maxWidth: '14ch',
+              }}
             >
-              {/* Imagen */}
-              <div className="artist-image">
-                <span className="image-emoji">{artist.image}</span>
-              </div>
+              Artistas con identidad clara, handles legibles y mejor portfolio.
+            </h1>
 
-              {/* Info */}
-              <div className="artist-info">
-                <h3>{artist.name}</h3>
-                <p className="specialty">{artist.specialty}</p>
-                
-                {/* Rating */}
-                <div className="artist-rating">
-                  {[...Array(5)].map((_, i) => (
-                    <FiStar
-                      key={i}
-                      size={14}
-                      className={i < Math.round(artist.rating) ? 'filled' : ''}
-                    />
-                  ))}
-                  <span>{artist.rating} ({artist.reviewCount})</span>
+            <p style={{ margin: '0 0 32px', fontSize: 16, lineHeight: 1.75, color: 'rgba(255,255,255,0.5)', fontFamily: FONT, maxWidth: 520 }}>
+              Esta vista consume una capa MCP con artistas, piezas y disponibilidad para una estructura más premium.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              <a
+                href={studio.instagramUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  borderRadius: 9999, border: '0.5px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.04)', padding: '7px 18px',
+                  fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontFamily: FONT,
+                }}
+              >
+                Abrir Instagram <FiInstagram size={13} />
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Grid artistas ── */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          {artists.map((artist, index) => {
+            const slot = appointmentSlots.find((item) => item.artistId === artist.id);
+
+            return (
+              <motion.article
+                key={artist.id}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.06, duration: 0.5 }}
+                whileHover={{ y: -6 }}
+                style={{
+                  borderRadius: 28,
+                  overflow: 'hidden',
+                  border: '0.5px solid rgba(255,255,255,0.07)',
+                  background: '#0f0f0f',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: 'pointer',
+                }}
+              >
+                {/* Header con gradiente */}
+                <div
+                  className={`bg-gradient-to-br ${artist.tone}`}
+                  style={{ position: 'relative', minHeight: 240, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 22, overflow: 'hidden' }}
+                >
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 100%)' }} />
+
+                  {/* Fila superior */}
+                  <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.8)', fontFamily: FONT }}>
+                      {artist.specialization}
+                    </span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: FONT, letterSpacing: '0.1em' }}>
+                      {artist.experienceLabel}
+                    </span>
+                  </div>
+
+                  {/* Info inferior */}
+                  <div style={{ position: 'relative' }}>
+                    <p style={{ margin: '0 0 2px', fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: FONT, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                      {artist.legalName || 'Artista residente'}
+                    </p>
+                    <h2
+                      style={{
+                        margin: '0 0 4px',
+                        fontFamily: FONT,
+                        fontSize: 28,
+                        fontWeight: 800,
+                        letterSpacing: '-0.02em',
+                        textTransform: 'none',
+                        color: '#fff',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {artist.displayName}
+                    </h2>
+                    <p style={{ margin: '0 0 14px', fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', fontFamily: FONT }}>
+                      {artist.handle}
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {artist.skills.map((skill) => (
+                        <span key={skill} style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '3px 9px', fontFamily: FONT }}>
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Experience */}
-                <div className="experience">
-                  <FiMapPin size={14} />
-                  <span>{artist.experience}</span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+                {/* Cuerpo */}
+                <div style={{ padding: '20px 22px 22px', display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
 
-        {/* Modal de detalles del artista */}
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: MUTED, fontFamily: FONT, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {artist.biography}
+                  </p>
+
+                  {/* Rating + location */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: MUTED, fontFamily: FONT }}>
+                      <FiStar size={11} style={{ color: GOLD }} />
+                      {artist.rating.toFixed(1)} · {artist.reviewCount} reviews
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: MUTED, fontFamily: FONT }}>
+                      <FiMapPin size={11} />
+                      {artist.location}
+                    </span>
+                  </div>
+
+                  {/* Próxima cita */}
+                  {slot && (
+                    <div style={{ borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.3)', padding: '14px 16px' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: GOLD, fontFamily: FONT }}>
+                        Próxima cita
+                      </p>
+                      <p style={{ margin: '0 0 2px', fontSize: 13, color: 'rgba(255,255,255,0.75)', fontFamily: FONT }}>{slot.nextSlot}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: MUTED, fontFamily: FONT }}>{slot.deposit}</p>
+                    </div>
+                  )}
+
+                  {/* Mini portfolio */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    {artist.portfolio.slice(0, 3).map((piece) => (
+                      <PortfolioCard key={piece.id} piece={piece} />
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedArtist(artist)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      borderRadius: 9999, background: GOLD,
+                      padding: '13px 20px',
+                      fontFamily: FONT, fontSize: 12, fontWeight: 700,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                      color: '#0a0a0a', border: 'none', cursor: 'pointer',
+                      transition: 'opacity 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    Ver perfil completo <FiArrowRight size={14} />
+                  </button>
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+
+        {isLoading && (
+          <p style={{ marginTop: 24, fontSize: 13, color: MUTED, fontFamily: FONT }}>
+            Sincronizando artistas desde la capa MCP...
+          </p>
+        )}
+      </div>
+
+      {/* ── Modal perfil completo ── */}
+      <AnimatePresence>
         {selectedArtist && (
           <motion.div
-            className="artist-modal-overlay"
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(12px)', padding: 16 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedArtist(null)}
           >
             <motion.div
-              className="artist-modal"
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
+              style={{ position: 'relative', maxHeight: '90vh', width: '100%', maxWidth: 900, overflowY: 'auto', borderRadius: 32, border: '0.5px solid rgba(255,255,255,0.09)', background: '#090909' }}
+              initial={{ opacity: 0, scale: 0.96, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
+              {/* Botón cerrar */}
               <button
-                className="modal-close"
+                type="button"
                 onClick={() => setSelectedArtist(null)}
+                aria-label="Cerrar"
+                style={{ position: 'absolute', top: 18, right: 18, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 9999, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.6)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}
               >
-                ✕
+                <FiX size={18} />
               </button>
 
-              {/* Contenido */}
-              <div className="modal-content">
-                {/* Image + Info */}
-                <div className="modal-header">
-                  <div className="modal-artist-image">
-                    <span className="image-emoji">{selectedArtist.image}</span>
+              {/* Hero modal */}
+              <div
+                className={`bg-gradient-to-br ${selectedArtist.tone}`}
+                style={{ position: 'relative', overflow: 'hidden', padding: '40px 40px 36px' }}
+              >
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%)' }} />
+                <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'flex-end' }}>
+                  <div>
+                    <span style={{ display: 'inline-flex', borderRadius: 9999, border: '0.5px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.25)', padding: '5px 14px', fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#fff', fontFamily: FONT, marginBottom: 16 }}>
+                      {selectedArtist.specialization}
+                    </span>
+                    <p style={{ margin: '0 0 4px', fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontFamily: FONT }}>
+                      {selectedArtist.legalName || 'Artista residente'}
+                    </p>
+                    <h2 style={{ margin: '0 0 6px', fontFamily: FONT, fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 800, letterSpacing: '-0.025em', textTransform: 'none', color: '#fff', lineHeight: 1.08 }}>
+                      {selectedArtist.displayName}
+                    </h2>
+                    <p style={{ margin: '0 0 16px', fontSize: 11, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', fontFamily: FONT }}>
+                      {selectedArtist.handle}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', fontFamily: FONT, maxWidth: 380 }}>
+                      {selectedArtist.biography}
+                    </p>
                   </div>
-                  <div className="modal-artist-info">
-                    <h2>{selectedArtist.name}</h2>
-                    <p className="specialty">{selectedArtist.specialty}</p>
-                    <div className="artist-stats">
-                      <div className="stat">
-                        <strong>{selectedArtist.experience}</strong>
-                        <span>Experiencia</span>
-                      </div>
-                      <div className="stat">
-                        <strong>{selectedArtist.reviewCount}+</strong>
-                        <span>Trabajos</span>
-                      </div>
-                    </div>
-                    <div className="artist-rating-large">
-                      {[...Array(5)].map((_, i) => (
-                        <FiStar
-                          key={i}
-                          size={18}
-                          className={i < Math.round(selectedArtist.rating) ? 'filled' : ''}
-                        />
-                      ))}
-                      <span>{selectedArtist.rating}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Descripción */}
-                <div className="modal-section">
-                  <p className="artist-bio">{selectedArtist.description}</p>
+                  {/* Stats */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    {[
+                      { label: 'Experiencia', value: selectedArtist.experienceLabel },
+                      { label: 'Rating', value: selectedArtist.rating.toFixed(1) },
+                      { label: 'Sesiones', value: `${selectedArtist.completedAppointments}+` },
+                    ].map((s) => (
+                      <div key={s.label} style={{ borderRadius: 18, border: '0.5px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.35)', padding: '14px 12px' }}>
+                        <p style={{ margin: '0 0 6px', fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: GOLD, fontFamily: FONT }}>{s.label}</p>
+                        <strong style={{ fontFamily: FONT, fontSize: 22, fontWeight: 800, color: '#fff', textTransform: 'none', letterSpacing: '-0.01em' }}>{s.value}</strong>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </div>
+
+              {/* Body modal */}
+              <div style={{ padding: '32px 40px 36px', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
                 {/* Skills */}
-                <div className="modal-section">
-                  <h4>Especialidades</h4>
-                  <div className="skills">
-                    {selectedArtist.skills.map((skill, i) => (
-                      <span key={i} className="skill-badge">{skill}</span>
+                <div>
+                  <h3 style={{ margin: '0 0 14px', fontFamily: FONT, fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.75)', textTransform: 'none', letterSpacing: '-0.01em' }}>
+                    Especialidades
+                  </h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {selectedArtist.skills.map((skill) => (
+                      <span key={skill} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', background: 'rgba(212,170,90,0.08)', border: '0.5px solid rgba(212,170,90,0.25)', borderRadius: 8, padding: '5px 12px', fontFamily: FONT }}>
+                        {skill}
+                      </span>
                     ))}
                   </div>
                 </div>
 
                 {/* Portfolio */}
-                <div className="modal-section">
-                  <h4>Portafolio</h4>
-                  <div className="portfolio-grid">
-                    {selectedArtist.portfolio.map((item, i) => (
-                      <div key={i} className="portfolio-item">{item}</div>
+                <div>
+                  <h3 style={{ margin: '0 0 14px', fontFamily: FONT, fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.75)', textTransform: 'none', letterSpacing: '-0.01em' }}>
+                    Portafolio
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                    {selectedArtist.portfolio.map((piece) => (
+                      <PortfolioCard key={piece.id} piece={piece} />
                     ))}
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="modal-actions">
-                  <motion.button
-                    className="btn btn-primary"
+                {/* CTAs */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  <button
+                    type="button"
                     onClick={() => setShowReviewForm(true)}
-                    whileTap={{ scale: 0.95 }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 9999, background: GOLD, padding: '12px 16px', fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0a0a0a', border: 'none', cursor: 'pointer' }}
                   >
-                    Dejar Reseña
-                  </motion.button>
-                  <motion.button
-                    className="btn btn-secondary"
-                    whileTap={{ scale: 0.95 }}
+                    Dejar reseña
+                  </button>
+                  <Link
+                    to="/contact"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 9999, border: '0.5px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', padding: '12px 16px', fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}
                   >
-                    Ver Disponibilidad
-                  </motion.button>
+                    Reservar cita <FiCalendar size={13} />
+                  </Link>
+                  <a
+                    href={selectedArtist.socialUrl || studio.instagramUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 9999, border: '0.5px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)', padding: '12px 16px', fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}
+                  >
+                    Instagram <FiInstagram size={13} />
+                  </a>
                 </div>
               </div>
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Review Form Modal */}
-        {showReviewForm && selectedArtist && (
-          <ReviewForm
-            itemId={selectedArtist.id}
-            itemType="artist"
-            onSubmit={handleReviewSubmit}
-            onClose={() => setShowReviewForm(false)}
-          />
-        )}
-      </div>
+      {showReviewForm && selectedArtist && (
+        <ReviewForm
+          itemId={selectedArtist.id}
+          itemType="artist"
+          onSubmit={handleReviewSubmit}
+          onClose={() => setShowReviewForm(false)}
+        />
+      )}
     </div>
   );
 }

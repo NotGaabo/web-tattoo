@@ -15,6 +15,7 @@ import Checkout from './pages/Checkout';
 import Auth from './pages/Auth';
 import Portal from './pages/Portal';
 import { useAuthStore } from './context/store';
+import { StudioMcpProvider } from './context/StudioMcpContext';
 import odooAuthService from './services/odooAuth';
 import './App.css';
 
@@ -65,36 +66,38 @@ function AppLayout() {
   }, [clearSession, setCheckingSession, setSession]);
 
   return (
-    <div className="app">
-      <Header />
-      <Cart />
-      <NotificationCenter />
+    <StudioMcpProvider>
+      <div className="app">
+        <Header />
+        <Cart />
+        <NotificationCenter />
 
-      <main className="main-content">
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/artists" element={<Artists />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/portal"
-              element={
-                <ProtectedRoute>
-                  <Portal />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AnimatePresence>
-      </main>
+        <main className="main-content">
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/artists" element={<Artists />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/portal"
+                element={
+                  <ProtectedRoute>
+                    <Portal />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </StudioMcpProvider>
   );
 }
 

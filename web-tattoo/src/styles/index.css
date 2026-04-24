@@ -1,19 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 :root {
-  --primary-black: #0b0908;
-  --primary-dark: #151210;
-  --bg-dark: #120f0e;
-  --bg-darker: #090807;
-  --panel-surface: linear-gradient(160deg, rgba(27, 23, 21, 0.95), rgba(12, 10, 9, 0.92));
-  --border-color: rgba(239, 226, 207, 0.11);
-  --border-subtle: rgba(239, 226, 207, 0.1);
-  --border-strong: rgba(201, 106, 50, 0.28);
-  --accent-gold: #c96a32;
-  --accent-silver: #efe2cf;
-  --accent-blood: #9f2f23;
-  --text-light: #f2e9de;
-  --text-muted: #a89483;
+  --primary-black: #050505;
+  --primary-dark: #0b0b0b;
+  --bg-dark: #060606;
+  --bg-darker: #020202;
+  --panel-surface: linear-gradient(160deg, rgba(18, 18, 18, 0.96), rgba(5, 5, 5, 0.94));
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(212, 170, 90, 0.3);
+  --accent-gold: #d4aa5a;
+  --accent-silver: #c8c4bd;
+  --accent-blood: #7c6130;
+  --text-light: #f4f1ec;
+  --text-muted: #8a877f;
   --success: #5cb374;
   --error: #ce4838;
   --warning: #df9a3a;
@@ -36,12 +37,13 @@ html {
 body {
   font-family: 'Manrope', sans-serif;
   background:
-    radial-gradient(circle at top, rgba(159, 47, 35, 0.18), transparent 28%),
-    radial-gradient(circle at 85% 20%, rgba(201, 106, 50, 0.18), transparent 24%),
-    linear-gradient(180deg, #0b0908 0%, #120f0e 55%, #090807 100%);
+    radial-gradient(circle at top, rgba(212, 170, 90, 0.12), transparent 26%),
+    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.08), transparent 20%),
+    linear-gradient(180deg, #050505 0%, #080808 55%, #020202 100%);
   color: var(--text-light);
   line-height: 1.6;
   min-width: 320px;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -109,18 +111,18 @@ a:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-gold), var(--accent-blood));
-  color: #fff6ef;
-  box-shadow: 0 16px 30px rgba(159, 47, 35, 0.24);
+  background: linear-gradient(135deg, #f2cf8b, var(--accent-gold), var(--accent-blood));
+  color: #111111;
+  box-shadow: 0 16px 30px rgba(212, 170, 90, 0.18);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 34px rgba(159, 47, 35, 0.32);
+  box-shadow: 0 18px 34px rgba(212, 170, 90, 0.26);
 }
 
 .btn-secondary {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
   color: var(--accent-silver);
   border-color: rgba(239, 226, 207, 0.14);
 }
@@ -241,6 +243,17 @@ textarea {
 .loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+.home-page {
+  overflow-x: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
