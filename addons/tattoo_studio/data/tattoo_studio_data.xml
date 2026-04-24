@@ -104,6 +104,109 @@
         </record>
 
         <!-- Artists -->
+        <record id="artist_maria" model="tattoo.artist">
+            <field name="name">María García</field>
+            <field name="email">maria@tattoostudio.com</field>
+            <field name="phone">+34 666 000 003</field>
+            <field name="specialization">Realism &amp; Watercolor</field>
+            <field name="biography">Experienced tattoo artist specializing in realistic portraits and watercolor designs.</field>
+            <field name="years_of_experience">8</field>
+            <field name="is_available">True</field>
+            <field name="skill_ids" eval="[(6, 0, [ref('skill_realism'), ref('skill_watercolor')])]"/>
+            <field name="service_ids" eval="[(6, 0, [ref('service_small'), ref('service_medium'), ref('service_large')])]"/>
+        </record>
+
+        <record id="artist_carlos" model="tattoo.artist">
+            <field name="name">Carlos Rodríguez</field>
+            <field name="email">carlos@tattoostudio.com</field>
+            <field name="phone">+34 666 000 004</field>
+            <field name="specialization">Traditional &amp; Biomechanical</field>
+            <field name="biography">Traditional tattoo artist with a passion for biomechanical designs.</field>
+            <field name="years_of_experience">6</field>
+            <field name="is_available">True</field>
+            <field name="skill_ids" eval="[(6, 0, [ref('skill_traditional'), ref('skill_biomechanical')])]"/>
+            <field name="service_ids" eval="[(6, 0, [ref('service_small'), ref('service_medium'), ref('service_large')])]"/>
+        </record>
+
+        <!-- Artist Availability -->
+        <record id="availability_maria_mon" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_maria"/>
+            <field name="day_of_week">0</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.0</field>
+        </record>
+
+        <record id="availability_maria_tue" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_maria"/>
+            <field name="day_of_week">1</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.0</field>
+        </record>
+
+        <record id="availability_maria_wed" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_maria"/>
+            <field name="day_of_week">2</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.0</field>
+        </record>
+
+        <record id="availability_maria_thu" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_maria"/>
+            <field name="day_of_week">3</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.0</field>
+        </record>
+
+        <record id="availability_maria_fri" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_maria"/>
+            <field name="day_of_week">4</field>
+            <field name="start_time">9.0</field>
+            <field name="end_time">17.0</field>
+        </record>
+
+        <record id="availability_carlos_mon" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_carlos"/>
+            <field name="day_of_week">0</field>
+            <field name="start_time">10.0</field>
+            <field name="end_time">18.0</field>
+        </record>
+
+        <record id="availability_carlos_tue" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_carlos"/>
+            <field name="day_of_week">1</field>
+            <field name="start_time">10.0</field>
+            <field name="end_time">18.0</field>
+        </record>
+
+        <record id="availability_carlos_wed" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_carlos"/>
+            <field name="day_of_week">2</field>
+            <field name="start_time">10.0</field>
+            <field name="end_time">18.0</field>
+        </record>
+
+        <record id="availability_carlos_thu" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_carlos"/>
+            <field name="day_of_week">3</field>
+            <field name="start_time">10.0</field>
+            <field name="end_time">18.0</field>
+        </record>
+
+        <record id="availability_carlos_fri" model="tattoo.artist.availability">
+            <field name="artist_id" ref="artist_carlos"/>
+            <field name="day_of_week">4</field>
+            <field name="start_time">10.0</field>
+            <field name="end_time">18.0</field>
+        </record>
+
+        <!-- Example Exception -->
+        <record id="exception_closed_2024_04_24" model="tattoo.exception">
+            <field name="date">2024-04-24</field>
+            <field name="reason">Vacaciones - Estudio cerrado</field>
+            <field name="is_closed">True</field>
+        </record>
+
+        <!-- Artists -->
         <record id="artist_carlos" model="tattoo.artist">
             <field name="name">Carlos Martínez</field>
             <field name="email">carlos@tattoostudio.com</field>

@@ -27,11 +27,11 @@ export default function Products() {
         const formattedProducts = Array.isArray(productsList) 
           ? productsList.map(product => ({
               ...product,
-              image: '🧴',
+              image: product.image || '',
               rating: product.rating || 4.5,
               reviewCount: product.reviewCount || 0,
               originalPrice: product.price ? product.price * 1.2 : product.price
-            }))
+          }))
           : [];
         
         setProducts(formattedProducts);
@@ -83,14 +83,14 @@ export default function Products() {
   return (
     <div className="products-page">
       {/* Header */}
-      <motion.div
-        className="products-header"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+          <motion.div
+            className="products-header"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
         <div className="container">
-          <h1>Nuestros Productos</h1>
-          <p>Cuidados y suplementos esenciales para tus tatuajes</p>
+          <h1>Tienda</h1>
+          <p>Agujas, tintas, cuidados posteriores y herramientas esenciales para tus tatuajes</p>
         </div>
       </motion.div>
 

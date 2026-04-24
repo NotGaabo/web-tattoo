@@ -62,7 +62,7 @@ export default function Auth() {
         login: loginData.email,
         password: loginData.password,
       });
-      setSession(session);
+      setSession(session, session.token);
       showNotification('Sesion iniciada. Bienvenido al portal.', 'success');
       navigate(redirectTo, { replace: true });
     } catch (error) {
@@ -89,7 +89,7 @@ export default function Auth() {
 
     try {
       const session = await odooAuthService.register(registerData);
-      setSession(session);
+      setSession(session, session.token);
       showNotification('Registro listo. Tu usuario se creo como portal.', 'success');
       navigate('/portal', { replace: true });
     } catch (error) {

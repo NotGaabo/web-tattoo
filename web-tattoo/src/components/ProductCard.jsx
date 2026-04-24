@@ -2,7 +2,25 @@ import React, { useState } from 'react';
 import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../context/store';
+import { resolveBackendUrl } from '../services/api';
 import './ProductCard.css';
+
+const PRODUCT_FALLBACKS = {
+  needle: '/product-images/needle.svg',
+  aguja: '/product-images/needle.svg',
+  ink: '/product-images/ink-pot.svg',
+  tinta: '/product-images/ink-pot.svg',
+  cream: '/product-images/aftercare-cream.svg',
+  crema: '/product-images/aftercare-cream.svg',
+  balm: '/product-images/aftercare-balm.svg',
+  aftercare: '/product-images/aftercare-cream.svg',
+};
+
+function getFallbackProductImage(product = {}) {
+  const haystack = `${product.name || ''} ${product.brand || ''} ${product.description || ''}`.toLowerCase();
+  const entry = Object.entries(PRODUCT_FALLBACKS).find(([key]) => haystack.includes(key));
+  return entry ? entry[1] : '/product-images/tattoo-supplies.svg';
+}
 
 /**
  * Componente ProductCard - Tarjeta de producto reutilizable
@@ -22,6 +40,10 @@ export default function ProductCard({ product }) {
   const hasImageSrc =
     typeof product.image === 'string' &&
     (product.image.startsWith('http') || product.image.startsWith('/') || product.image.startsWith('data:'));
+  const isLocalAsset = typeof product.image === 'string' && product.image.startsWith('/product-images/');
+  const imageSrc = hasImageSrc
+    ? (isLocalAsset ? product.image : resolveBackendUrl(product.image))
+    : getFallbackProductImage(product);
 
   const handleAddToCart = () => {
     addItem({
@@ -44,13 +66,7 @@ export default function ProductCard({ product }) {
       transition={{ duration: 0.3 }}
     >
       <div className="product-image">
-        {hasImageSrc ? (
-          <img src={product.image} alt={product.name} />
-        ) : (
-          <div className="product-image-fallback">
-            <span>{product.image || 'INK'}</span>
-          </div>
-        )}
+        <img src={imageSrc} alt={product.name} />
         {product.discount && (
           <div className="discount-badge">{product.discount}% OFF</div>
         )}

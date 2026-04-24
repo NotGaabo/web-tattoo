@@ -68,6 +68,8 @@ class TattooProductController(http.Controller):
             'price': product.list_price,
             'description': product.description_sale or '',
             'active': product.active,
+            'brand': product.brand or '',
+            'image': f'/web/image/product.template/{product.id}/image_1920' if product.image_1920 else '',
         }
 
     @http.route('/api/products', type='http', auth='public', methods=['GET', 'POST', 'OPTIONS'], csrf=False)
@@ -102,6 +104,9 @@ class TattooProductController(http.Controller):
             'list_price': float(price),
             'description_sale': description,
         })
+
+        if data.get('image'):
+            product.sudo().write({'image_1920': data.get('image')})
 
         return self._response({
             'success': True,
@@ -143,6 +148,8 @@ class TattooProductController(http.Controller):
                 values['description_sale'] = (data.get('description') or '').strip()
             if 'active' in data:
                 values['active'] = bool(data.get('active'))
+            if 'image' in data:
+                values['image_1920'] = data.get('image') or False
 
             if not values:
                 return self._response({

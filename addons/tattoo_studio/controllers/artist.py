@@ -38,13 +38,26 @@ class TattooArtistController(http.Controller):
             'is_available': artist.is_available,
             'email': artist.email or '',
             'phone': artist.phone or '',
+            'image': f'/web/image/tattoo.artist/{artist.id}/image_1920' if artist.image_1920 else '',
             'skills': [skill.name for skill in artist.skill_ids],
             'portfolio': [
                 {
                     'id': img.id,
                     'url': img.image_url or '',
-                    'title': img.title or '',
+                    'title': img.name or '',
+                    'type': img.tattoo_type or '',
+                    'description': img.description or '',
                 } for img in artist.portfolio_image_ids
+            ],
+            'gallery': [
+                {
+                    'id': image.id,
+                    'name': image.name or '',
+                    'type': image.tattoo_type or '',
+                    'description': image.description or '',
+                    'url': image.image_url or '',
+                    'work_date': image.work_date.isoformat() if image.work_date else '',
+                } for image in artist.gallery_image_ids
             ],
         }
 

@@ -38,6 +38,7 @@ const storedCart = readStorage(CART_STORAGE_KEY, {
 const storedAuth = readStorage(AUTH_STORAGE_KEY, {
   user: null,
   isAuthenticated: false,
+  token: null,
 });
 
 function persistCart(items) {
@@ -98,16 +99,19 @@ export const useCartStore = create((set) => ({
 export const useAuthStore = create((set) => ({
   user: storedAuth.user,
   isAuthenticated: storedAuth.isAuthenticated,
+  token: storedAuth.token,
   isCheckingSession: true,
-  setSession: (user) =>
+  setSession: (user, token) =>
     set(() => {
       const nextState = {
         user,
+        token,
         isAuthenticated: Boolean(user),
         isCheckingSession: false,
       };
       writeStorage(AUTH_STORAGE_KEY, {
         user: nextState.user,
+        token: nextState.token,
         isAuthenticated: nextState.isAuthenticated,
       });
       return nextState;
@@ -116,11 +120,13 @@ export const useAuthStore = create((set) => ({
     set(() => {
       const nextState = {
         user: null,
+        token: null,
         isAuthenticated: false,
         isCheckingSession: false,
       };
       writeStorage(AUTH_STORAGE_KEY, {
         user: null,
+        token: null,
         isAuthenticated: false,
       });
       return nextState;

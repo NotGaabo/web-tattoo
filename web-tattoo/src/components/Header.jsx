@@ -22,7 +22,7 @@ export default function Header() {
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const navItems = [
     { to: '/', label: 'Inicio' },
-    { to: '/products', label: 'Aftercare' },
+    { to: '/products', label: 'Tienda' },
     { to: '/services', label: 'Servicios' },
     { to: '/artists', label: 'Artistas' },
     { to: '/contact', label: 'Contacto' },
@@ -179,7 +179,7 @@ export default function Header() {
 
           {/* CTA Reservar */}
           <Link
-            to="/contact"
+            to="/appointment"
             className="hidden md:inline-flex"
             style={{
               display: 'inline-flex',
@@ -348,7 +348,7 @@ export default function Header() {
           ))}
           <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
           <Link
-            to="/contact"
+            to="/appointment"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

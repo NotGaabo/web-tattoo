@@ -54,6 +54,34 @@ class TattooAuthController(http.Controller):
             'is_portal': role == 'portal',
         }
 
+    def _ensure_customer_for_user(self, user, name=None, email=None, phone=None):
+        if not user or not user.share:
+            return False
+
+        Customer = request.env['tattoo.customer'].sudo()
+        partner = user.partner_id.sudo()
+        customer_name = (name or partner.name or user.name or '').strip()
+        customer_email = (email or partner.email or user.login or '').strip().lower()
+        customer_phone = (phone or partner.phone or '').strip()
+
+        domain = [('user_id', '=', user.id)]
+        if customer_email:
+            domain = ['|', ('user_id', '=', user.id), ('email', '=', customer_email)]
+
+        customer = Customer.search(domain, limit=1)
+        customer_vals = {
+            'name': customer_name or user.name or user.login,
+            'email': customer_email or user.login,
+            'phone': customer_phone,
+            'user_id': user.id,
+        }
+
+        if customer:
+            customer.write(customer_vals)
+            return customer
+
+        return Customer.create(customer_vals)
+
     @http.route('/api/auth/register', type='http', auth='public', methods=['POST', 'OPTIONS'], csrf=False)
     def register(self, **kwargs):
         if request.httprequest.method == 'OPTIONS':
@@ -91,6 +119,7 @@ class TattooAuthController(http.Controller):
         if phone:
             partner_values['phone'] = phone
         user.partner_id.sudo().write(partner_values)
+        self._ensure_customer_for_user(user, name=name, email=email, phone=phone)
 
         return self._response({
             'success': True,
@@ -98,55 +127,59 @@ class TattooAuthController(http.Controller):
             'data': self._serialize_user(user),
         }, status=201)
 
-    @http.route('/api/auth/login', type='http', auth='public', methods=['POST', 'OPTIONS'], csrf=False)
-    def login(self, **kwargs):
+    @http.route('/api/auth/signin', type='http', auth='none', methods=['POST', 'OPTIONS'], csrf=False)
+    def signin(self, **kwargs):
         if request.httprequest.method == 'OPTIONS':
             return self._preflight()
 
+        # Try multiple ways to get the data
         data = self._json_body()
+        if not data:
+            data = request.httprequest.get_json() or {}
+        if not data:
+            data = kwargs
+        
         email = (data.get('email') or '').strip().lower()
         password = data.get('password') or ''
 
         if not email or not password:
             return self._response({
                 'success': False,
-                'message': 'email and password are required',
+                'message': 'email and password are required: got %s' % str(data),
             }, status=400)
 
-        user = request.env['res.users'].sudo().search([
-            ('login', '=', email)
-        ], limit=1)
+        # Find user and check credentials
+        Users = request.env['res.users'].sudo()
+        user = Users.search([('login', '=', email)], limit=1)
         if not user:
             return self._response({
                 'success': False,
-                'message': 'invalid credentials',
+                'message': 'user not found',
             }, status=401)
 
+        # Check password
         try:
-            auth_info = user.with_user(user)._check_credentials({
+            user.with_user(user)._check_credentials({
                 'type': 'password',
-                'login': email,
                 'password': password,
             }, {'interactive': True})
-        except AccessDenied:
+        except Exception as e:
             return self._response({
                 'success': False,
-                'message': 'invalid credentials',
+                'message': 'invalid credentials: %s' % str(e),
             }, status=401)
-
-        uid = auth_info.get('uid')
-        if not uid:
-            return self._response({
-                'success': False,
-                'message': 'invalid credentials',
-            }, status=401)
-
-        user = request.env['res.users'].sudo().browse(uid)
 
         token = self._generate_token()
         user.write({
             'api_token': token,
         })
+
+        self._ensure_customer_for_user(
+            user,
+            name=user.partner_id.name or user.name,
+            email=user.partner_id.email or user.login,
+            phone=user.partner_id.phone or '',
+        )
 
         return self._response({
             'success': True,
@@ -157,6 +190,11 @@ class TattooAuthController(http.Controller):
                 'login_date': fields.Datetime.now(),
             }
         })
+
+    # Alias for signin
+    @http.route('/api/auth/login', type='http', auth='none', methods=['POST', 'OPTIONS'], csrf=False)
+    def login(self, **kwargs):
+        return self.signin(**kwargs)
 
     @http.route('/api/auth/me', type='http', auth='public', methods=['GET', 'OPTIONS'], csrf=False)
     def me(self, **kwargs):

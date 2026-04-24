@@ -14,6 +14,8 @@ import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Auth from './pages/Auth';
 import Portal from './pages/Portal';
+import Booking from './pages/Booking';
+import ArtistDetail from './pages/ArtistDetail';
 import Debug from './pages/Debug';
 import { useAuthStore } from './context/store';
 import { StudioMcpProvider } from './context/StudioMcpContext';
@@ -41,7 +43,8 @@ function AppLayout() {
       setCheckingSession(true);
 
       try {
-        const session = await odooAuthService.getSessionInfo();
+        const storedToken = useAuthStore.getState().token;
+        const session = storedToken ? await odooAuthService.getSessionInfo(storedToken) : null;
 
         if (!isMounted) {
           return;
@@ -80,6 +83,9 @@ function AppLayout() {
               <Route path="/products" element={<Products />} />
               <Route path="/services" element={<Services />} />
               <Route path="/artists" element={<Artists />} />
+              <Route path="/artists/:artistId" element={<ArtistDetail />} />
+              <Route path="/booking/:artistId" element={<Booking />} />
+              <Route path="/appointment" element={<Booking />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/auth" element={<Auth />} />

@@ -38,6 +38,7 @@ class TattooCustomer(models.Model):
     number_of_orders = fields.Integer(string='Number of Orders', compute='_compute_number_of_orders', store=True)
     
     # Relaciones
+    user_id = fields.Many2one('res.users', string='Related User', ondelete='set null')
     order_ids = fields.One2many('tattoo.order', 'customer_id', string='Orders')
     appointment_ids = fields.One2many('tattoo.appointment', 'customer_id', string='Appointments')
     review_ids = fields.One2many('tattoo.review', 'customer_id', string='Reviews')
