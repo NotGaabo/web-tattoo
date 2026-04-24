@@ -14,6 +14,7 @@ import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Auth from './pages/Auth';
 import Portal from './pages/Portal';
+import Debug from './pages/Debug';
 import { useAuthStore } from './context/store';
 import { StudioMcpProvider } from './context/StudioMcpContext';
 import odooAuthService from './services/odooAuth';
@@ -82,6 +83,7 @@ function AppLayout() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/debug" element={<Debug />} />
               <Route
                 path="/portal"
                 element={

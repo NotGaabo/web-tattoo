@@ -176,6 +176,16 @@ class TattooAuthController(http.Controller):
             'data': self._serialize_user(user),
         })
 
+    @http.route('/api/auth/logout', type='http', auth='public', methods=['POST', 'OPTIONS'], csrf=False)
+    def logout(self, **kwargs):
+        if request.httprequest.method == 'OPTIONS':
+            return self._preflight()
+
+        return self._response({
+            'success': True,
+            'message': 'logged out',
+        })
+
     def _extract_token(self):
         auth_header = request.httprequest.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):

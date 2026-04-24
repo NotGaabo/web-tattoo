@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiClock, FiDroplet } from 'react-icons/fi';
 import { useUIStore } from '../context/store';
+import { serviceService } from '../services/api';
 import './Services.css';
 
 /**
@@ -10,64 +11,40 @@ import './Services.css';
 export default function Services() {
   const showNotification = useUIStore(state => state.showNotification);
   const [selectedCategory, setSelectedCategory] = useState('small');
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Datos de ejemplo
-  const mockServices = {
-    small: [
-      {
-        id: 1,
-        name: 'Pequeño Tatuaje',
-        price: 80,
-        estimatedTime: '30-45 min',
-        colors: ['Negro', 'Gris'],
-        description: 'Tatuajes pequeños (hasta 5cm²). Perfecto para primeras tatuajes o diseños simples.'
-      },
-      {
-        id: 2,
-        name: 'Micro Tatuaje',
-        price: 50,
-        estimatedTime: '15-30 min',
-        colors: ['Negro'],
-        description: 'Tatuajes muy pequeños y delicados. Ideal para discretos y minimalistas.'
+  // Cargar servicios de la API
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        const response = await serviceService.getAll();
+        
+        // Manejar diferentes formatos de respuesta
+        const servicesList = response?.data || response || [];
+        const formattedServices = Array.isArray(servicesList) 
+          ? servicesList.map(service => ({
+              ...service,
+              colors: service.colorsName ? [service.colorsName] : ['Negro'],
+              estimatedTime: service.estimatedTime || '1 hora'
+            }))
+          : [];
+        
+        setServices(formattedServices);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading services:', err);
+        setError('No pudimos cargar los servicios. Por favor intenta más tarde.');
+        setServices([]);
+      } finally {
+        setLoading(false);
       }
-    ],
-    medium: [
-      {
-        id: 3,
-        name: 'Tatuaje Mediano',
-        price: 150,
-        estimatedTime: '1.5-2.5 horas',
-        colors: ['Negro', 'Gris', 'Color'],
-        description: 'Tatuajes medianos (5-20cm²). Gran variedad de diseños y estilos.'
-      },
-      {
-        id: 4,
-        name: 'Tatuaje Medio Coloreado',
-        price: 200,
-        estimatedTime: '2-3 horas',
-        colors: ['Todos'],
-        description: 'Diseños en color con excelentes detalles y sombreados.'
-      }
-    ],
-    large: [
-      {
-        id: 5,
-        name: 'Tatuaje Grande',
-        price: 300,
-        estimatedTime: '3-5 horas',
-        colors: ['Negro', 'Gris', 'Color'],
-        description: 'Tatuajes grandes con mucho detalle. Requiere múltiples sesiones.'
-      },
-      {
-        id: 6,
-        name: 'Pieza Completa de Brazo',
-        price: 500,
-        estimatedTime: '5-8 horas',
-        colors: ['Todos'],
-        description: 'Diseños que cubren todo el brazo. Proyecto personalizado de larga duración.'
-      }
-    ]
-  };
+    };
+
+    fetchServices();
+  }, []);
 
   const serviceTypes = [
     {
@@ -101,7 +78,8 @@ export default function Services() {
     );
   };
 
-  const currentServices = mockServices[selectedCategory] || [];
+  // Filtrar servicios por categoría
+  const currentServices = services.filter(s => s.type === selectedCategory);
 
   return (
     <div className="services-page">
@@ -174,49 +152,63 @@ export default function Services() {
             className="services-grid"
             layout
           >
-            {currentServices.map((service) => (
-              <motion.div
-                key={service.id}
-                className="service-card"
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                whileHover={{ y: -8 }}
-              >
-                {/* Header */}
-                <div className="service-card-header">
-                  <h3>{service.name}</h3>
-                  <span className="service-price">${service.price}</span>
-                </div>
-
-                {/* Descripción */}
-                <p className="service-description">{service.description}</p>
-
-                {/* Detalles */}
-                <div className="service-details">
-                  <div className="detail-item">
-                    <FiClock size={18} />
-                    <span>{service.estimatedTime}</span>
-                  </div>
-                  <div className="detail-item">
-                    <FiDroplet size={18} />
-                    <span>{service.colors.join(', ')}</span>
-                  </div>
-                </div>
-
-                {/* Botón */}
-                <motion.button
-                  className="btn btn-primary"
-                  onClick={() => handleSchedule(service)}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ width: '100%' }}
+            {loading ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
+                <p>Cargando servicios...</p>
+              </div>
+            ) : error ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
+                <p>{error}</p>
+              </div>
+            ) : currentServices.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
+                <p>No hay servicios disponibles en esta categoría.</p>
+              </div>
+            ) : (
+              currentServices.map((service) => (
+                <motion.div
+                  key={service.id}
+                  className="service-card"
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  whileHover={{ y: -8 }}
                 >
-                  Agendar <FiArrowRight />
-                </motion.button>
-              </motion.div>
-            ))}
+                  {/* Header */}
+                  <div className="service-card-header">
+                    <h3>{service.name}</h3>
+                    <span className="service-price">${service.price}</span>
+                  </div>
+
+                  {/* Descripción */}
+                  <p className="service-description">{service.description}</p>
+
+                  {/* Detalles */}
+                  <div className="service-details">
+                    <div className="detail-item">
+                      <FiClock size={18} />
+                      <span>{service.estimatedTime}</span>
+                    </div>
+                    <div className="detail-item">
+                      <FiDroplet size={18} />
+                      <span>{service.colors.join(', ')}</span>
+                    </div>
+                  </div>
+
+                  {/* Botón */}
+                  <motion.button
+                    className="btn btn-primary"
+                    onClick={() => handleSchedule(service)}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ width: '100%' }}
+                  >
+                    Agendar <FiArrowRight />
+                  </motion.button>
+                </motion.div>
+              ))
+            )}
           </motion.div>
         </motion.section>
 

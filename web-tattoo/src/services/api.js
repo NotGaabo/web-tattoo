@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+// En desarrollo (sin VITE_API_URL), usa el proxy de Vite
+// En producción, puede especificarse VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || '/';
 
 /**
  * Cliente HTTP configurado con la URL base de la API

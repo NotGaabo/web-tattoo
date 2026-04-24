@@ -1,112 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
+import { productService } from '../services/api';
 import './Products.css';
 
 /**
  * Página de productos (suplementos)
  */
 export default function Products() {
-  // Datos de ejemplo - normalmente vendría de la API
-  const mockProducts = [
-    {
-      id: 1,
-      name: 'Cream Aftercare Premium',
-      brand: 'TattooLux',
-      price: 24.99,
-      originalPrice: 29.99,
-      description: 'Crema premium para cuidado posterior al tatuaje. Hidratación profunda y protección.',
-      image: '🧴',
-      rating: 4.8,
-      reviewCount: 156,
-      discount: 15
-    },
-    {
-      id: 2,
-      name: 'Protective Balm',
-      brand: 'SkinShield',
-      price: 19.99,
-      description: 'Bálsamo protector con ingredientes naturales para cicatrización óptima.',
-      image: '💚',
-      rating: 4.6,
-      reviewCount: 98
-    },
-    {
-      id: 3,
-      name: 'Healing Lotion',
-      brand: 'InkCare',
-      price: 21.99,
-      description: 'Loción curativa especialmente formulada para tatuajes nuevos.',
-      image: '🧴',
-      rating: 4.7,
-      reviewCount: 124
-    },
-    {
-      id: 4,
-      name: 'Anti-Scam Serum',
-      brand: 'TattooLux',
-      price: 32.99,
-      description: 'Suero antiscarificante de última generación para mejores resultados.',
-      image: '💎',
-      rating: 4.9,
-      reviewCount: 87,
-      discount: 10
-    },
-    {
-      id: 5,
-      name: 'Vitamin E Oil',
-      brand: 'NaturalCare',
-      price: 15.99,
-      description: 'Aceite de vitamina E puro para elasticidad y salud de la piel.',
-      image: '🫒',
-      rating: 4.5,
-      reviewCount: 203
-    },
-    {
-      id: 6,
-      name: 'Ink Booster',
-      brand: 'ColorMax',
-      price: 28.99,
-      description: 'Suplemento que intensifica y mantiene los colores de tu tatuaje.',
-      image: '⭐',
-      rating: 4.8,
-      reviewCount: 145
-    }
-  ];
-
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Cargar productos de la API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productService.getAll();
+        
+        // Manejar diferentes formatos de respuesta
+        const productsList = response?.data || response || [];
+        const formattedProducts = Array.isArray(productsList) 
+          ? productsList.map(product => ({
+              ...product,
+              image: '🧴',
+              rating: product.rating || 4.5,
+              reviewCount: product.reviewCount || 0,
+              originalPrice: product.price ? product.price * 1.2 : product.price
+            }))
+          : [];
+        
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading products:', err);
+        setError('No pudimos cargar los productos. Por favor intenta más tarde.');
+        setProducts([]);
+        setFilteredProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filtrar y ordenar productos
   useEffect(() => {
-    let products = mockProducts;
+    let filtered = products;
 
     // Filtro por marca
     if (selectedBrand !== 'all') {
-      products = products.filter(p => p.brand === selectedBrand);
+      filtered = filtered.filter(p => p.brand === selectedBrand);
     }
 
     // Ordenar
     switch (sortBy) {
       case 'price-low':
-        products.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => a.price - b.price);
         break;
       case 'price-high':
-        products.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       default:
         // featured - orden original
         break;
     }
 
-    setFilteredProducts(products);
-  }, [selectedBrand, sortBy]);
+    setFilteredProducts(filtered);
+  }, [products, selectedBrand, sortBy]);
 
-  const brands = ['all', ...new Set(mockProducts.map(p => p.brand))];
+  const brands = ['all', ...new Set(products.map(p => p.brand || 'Sin marca'))];
 
   return (
     <div className="products-page">
@@ -173,7 +145,15 @@ export default function Products() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {filteredProducts.length === 0 ? (
+          {loading ? (
+            <div className="no-products">
+              <p>Cargando productos...</p>
+            </div>
+          ) : error ? (
+            <div className="no-products">
+              <p>{error}</p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="no-products">
               <p>No hay productos que coincidan con los filtros seleccionados.</p>
             </div>
@@ -193,9 +173,11 @@ export default function Products() {
           )}
 
           {/* Resultado de búsqueda */}
-          <p className="results-count">
-            Mostrando {filteredProducts.length} de {mockProducts.length} productos
-          </p>
+          {!loading && !error && (
+            <p className="results-count">
+              Mostrando {filteredProducts.length} de {products.length} productos
+            </p>
+          )}
         </motion.div>
       </div>
     </div>

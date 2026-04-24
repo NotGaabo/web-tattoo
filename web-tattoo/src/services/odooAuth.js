@@ -1,155 +1,110 @@
-const ODOO_BASE_URL = (import.meta.env.VITE_ODOO_URL || '').replace(/\/$/, '');
-const ODOO_DB = import.meta.env.VITE_ODOO_DB || '';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
-function resolveOdooUrl(path) {
-  return ODOO_BASE_URL ? `${ODOO_BASE_URL}${path}` : path;
-}
-
-function stripHtml(value = '') {
-  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function extractCsrfToken(html) {
-  const match = html.match(/name=["']csrf_token["']\s+value=["']([^"']+)["']/i);
-  return match ? match[1] : '';
-}
-
-function extractSignupError(html) {
-  const match = html.match(
-    /(?:alert-danger|oe_login_buttons|text-danger)[^>]*>([\s\S]*?)<\/(?:div|p|span)>/i,
-  );
-  return match ? stripHtml(match[1]) : '';
-}
-
-function normalizeSession(sessionInfo = {}) {
-  if (!sessionInfo.uid) {
-    return null;
-  }
-
-  const login = sessionInfo.username || sessionInfo.login || '';
-  const partnerDisplayName =
-    sessionInfo.partner_display_name ||
-    sessionInfo.name ||
-    login ||
-    'Cliente Portal';
-
+function normalizeSession(data = {}) {
   return {
-    id: sessionInfo.uid,
-    name: partnerDisplayName,
-    login,
-    email: sessionInfo.email || login,
-    partnerId: sessionInfo.partner_id || null,
-    isPortal: !sessionInfo.is_system,
-    raw: sessionInfo,
+    id: data.id || null,
+    name: data.name || '',
+    email: data.email || '',
+    token: data.token || '',
+    role: data.role || 'portal',
+    is_admin: data.is_admin || false,
+    is_portal: data.is_portal || true,
   };
 }
 
-async function jsonRpc(path, params = {}) {
-  const response = await fetch(resolveOdooUrl(path), {
-    method: 'POST',
-    credentials: 'include',
+async function apiCall(endpoint, method = 'GET', body = null, token = null) {
+  const url = `${API_URL}${endpoint}`;
+  const options = {
+    method,
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      method: 'call',
-      params,
-      id: Date.now(),
-    }),
-  });
+  };
 
-  const payload = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error('No se pudo comunicar con Odoo.');
+  if (token) {
+    options.headers['Authorization'] = `Bearer ${token}`;
   }
 
-  if (payload?.error?.data?.message || payload?.error?.message) {
-    throw new Error(payload.error.data?.message || payload.error.message);
+  if (body) {
+    options.body = JSON.stringify(body);
   }
 
-  return payload?.result;
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.message || `Error ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`API Call failed: ${endpoint}`, error);
+    throw error;
+  }
 }
 
 export const odooAuthService = {
-  async getSessionInfo() {
-    const sessionInfo = await jsonRpc('/web/session/get_session_info');
-    return normalizeSession(sessionInfo);
-  },
-
   async login({ login, password }) {
-    const sessionInfo = await jsonRpc('/web/session/authenticate', {
-      db: ODOO_DB,
-      login,
-      password,
-    });
+    try {
+      const response = await apiCall('/api/auth/login', 'POST', {
+        email: login,
+        password,
+      });
 
-    const user = normalizeSession(sessionInfo);
+      if (!response.success) {
+        throw new Error(response.message || 'Login failed');
+      }
 
-    if (!user) {
-      throw new Error('No se pudo iniciar sesión con las credenciales enviadas.');
+      const user = normalizeSession(response.data);
+      return user;
+    } catch (error) {
+      throw new Error(error.message || 'No se pudo iniciar sesión.');
     }
-
-    return user;
   },
 
   async register({ name, email, password, phone }) {
-    const signupPage = await fetch(resolveOdooUrl('/web/signup'), {
-      method: 'GET',
-      credentials: 'include',
-    });
+    try {
+      const response = await apiCall('/api/auth/register', 'POST', {
+        name,
+        email,
+        password,
+        phone,
+      });
 
-    const signupHtml = await signupPage.text();
-    const csrfToken = extractCsrfToken(signupHtml);
+      if (!response.success) {
+        throw new Error(response.message || 'Registration failed');
+      }
 
-    if (!csrfToken) {
-      throw new Error(
-        'El registro público no está habilitado en Odoo. Activa portal/auth_signup para crear usuarios portal.',
-      );
+      const user = normalizeSession(response.data);
+      return user;
+    } catch (error) {
+      throw new Error(error.message || 'No se pudo completar el registro.');
     }
+  },
 
-    const formData = new URLSearchParams();
-    formData.set('csrf_token', csrfToken);
-    formData.set('name', name);
-    formData.set('login', email);
-    formData.set('password', password);
-    formData.set('confirm_password', password);
-    formData.set('redirect', '/web');
+  async getSessionInfo(token) {
+    try {
+      const response = await apiCall('/api/auth/me', 'GET', null, token);
 
-    if (phone) {
-      formData.set('phone', phone);
+      if (!response.success) {
+        throw new Error(response.message || 'Session not valid');
+      }
+
+      return normalizeSession(response.data);
+    } catch (error) {
+      return null;
     }
-
-    if (ODOO_DB) {
-      formData.set('db', ODOO_DB);
-    }
-
-    const response = await fetch(resolveOdooUrl('/web/signup'), {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-      redirect: 'follow',
-    });
-
-    const responseHtml = await response.text();
-    const signupError = extractSignupError(responseHtml);
-
-    if (signupError) {
-      throw new Error(signupError);
-    }
-
-    return this.login({
-      login: email,
-      password,
-    });
   },
 
   async logout() {
-    await jsonRpc('/web/session/destroy');
+    try {
+      await apiCall('/api/auth/logout', 'POST');
+      return true;
+    } catch (error) {
+      console.error('Logout error:', error);
+      return false;
+    }
   },
 };
 
