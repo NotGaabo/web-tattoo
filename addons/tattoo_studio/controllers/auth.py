@@ -1,35 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import json
 from uuid import uuid4
 
-from odoo import http, fields
-from odoo.exceptions import AccessDenied
+from odoo import fields, http
 from odoo.http import request
-from werkzeug.wrappers import Response
+
+from .api_utils import TattooApiControllerMixin
 
 
-class TattooAuthController(http.Controller):
-    _cors_headers = [
-        ('Content-Type', 'application/json'),
-        ('Access-Control-Allow-Origin', '*'),
-        ('Access-Control-Allow-Headers', 'Content-Type, Authorization'),
-        ('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'),
-    ]
-
-    def _response(self, payload, status=200):
-        body = json.dumps(payload, default=str)
-        response = Response(body, status=status, content_type='application/json')
-        for header, value in self._cors_headers:
-            response.headers[header] = value
-        return response
-
-    def _preflight(self):
-        return self._response({'success': True}, status=200)
-
-    def _json_body(self):
-        return request.httprequest.get_json(silent=True) or {}
-
+class TattooAuthController(TattooApiControllerMixin, http.Controller):
     def _generate_token(self):
         return uuid4().hex
 
@@ -115,6 +94,7 @@ class TattooAuthController(http.Controller):
 
         user = Users.create(user_vals)
         user.sudo().write({'share': True})
+
         partner_values = {'email': email}
         if phone:
             partner_values['phone'] = phone
@@ -132,13 +112,12 @@ class TattooAuthController(http.Controller):
         if request.httprequest.method == 'OPTIONS':
             return self._preflight()
 
-        # Try multiple ways to get the data
         data = self._json_body()
         if not data:
             data = request.httprequest.get_json() or {}
         if not data:
             data = kwargs
-        
+
         email = (data.get('email') or '').strip().lower()
         password = data.get('password') or ''
 
@@ -148,7 +127,6 @@ class TattooAuthController(http.Controller):
                 'message': 'email and password are required: got %s' % str(data),
             }, status=400)
 
-        # Find user and check credentials
         Users = request.env['res.users'].sudo()
         user = Users.search([('login', '=', email)], limit=1)
         if not user:
@@ -157,7 +135,6 @@ class TattooAuthController(http.Controller):
                 'message': 'user not found',
             }, status=401)
 
-        # Check password
         try:
             user.with_user(user)._check_credentials({
                 'type': 'password',
@@ -191,7 +168,6 @@ class TattooAuthController(http.Controller):
             }
         })
 
-    # Alias for signin
     @http.route('/api/auth/login', type='http', auth='none', methods=['POST', 'OPTIONS'], csrf=False)
     def login(self, **kwargs):
         return self.signin(**kwargs)
@@ -223,16 +199,3 @@ class TattooAuthController(http.Controller):
             'success': True,
             'message': 'logged out',
         })
-
-    def _extract_token(self):
-        auth_header = request.httprequest.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            return auth_header.split(' ', 1)[1].strip()
-        return request.httprequest.headers.get('X-API-Token', '').strip()
-
-    def _user_from_token(self, token):
-        if not token:
-            return False
-        return request.env['res.users'].sudo().search([
-            ('api_token', '=', token)
-        ], limit=1)
