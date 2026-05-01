@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiArrowRight, FiShield, FiUser, FiUsers } from 'react-icons/fi';
 import { useAuthStore, useUIStore } from '../context/store';
-import odooAuthService, { getSessionHomePath } from '../services/odooAuth';
+import odooAuthService from '../services/odooAuth';
 import './Auth.css';
 
 function useModeFromQuery(search) {
@@ -19,9 +18,6 @@ export default function Auth() {
   const navigate = useNavigate();
   const defaultMode = useModeFromQuery(location.search);
   const setSession = useAuthStore((state) => state.setSession);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isCheckingSession = useAuthStore((state) => state.isCheckingSession);
-  const user = useAuthStore((state) => state.user);
   const showNotification = useUIStore((state) => state.showNotification);
 
   const [mode, setMode] = useState(defaultMode);
@@ -38,13 +34,8 @@ export default function Auth() {
     confirmPassword: '',
   });
 
+  const redirectTo = location.state?.from?.pathname || '/portal';
   const secretaryUrl = import.meta.env.VITE_SECRETARY_URL || '/web';
-
-  useEffect(() => {
-    if (!isCheckingSession && isAuthenticated && user) {
-      navigate(getSessionHomePath(user), { replace: true });
-    }
-  }, [isAuthenticated, isCheckingSession, navigate, user]);
 
   const handleLoginChange = (event) => {
     const { name, value } = event.target;
@@ -71,9 +62,9 @@ export default function Auth() {
         login: loginData.email,
         password: loginData.password,
       });
-      setSession(session, session.token);
-      showNotification('Sesion iniciada. Ya te llevamos a tu area.', 'success');
-      navigate(getSessionHomePath(session), { replace: true });
+      setSession(session);
+      showNotification('Sesion iniciada. Bienvenido al portal.', 'success');
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       showNotification(error.message || 'No se pudo iniciar sesion.', 'error');
     } finally {
@@ -98,9 +89,9 @@ export default function Auth() {
 
     try {
       const session = await odooAuthService.register(registerData);
-      setSession(session, session.token);
+      setSession(session);
       showNotification('Registro listo. Tu usuario se creo como portal.', 'success');
-      navigate(getSessionHomePath(session), { replace: true });
+      navigate('/portal', { replace: true });
     } catch (error) {
       showNotification(error.message || 'No se pudo completar el registro portal.', 'error');
     } finally {

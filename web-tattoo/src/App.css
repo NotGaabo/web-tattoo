@@ -9,30 +9,6 @@
   flex: 1;
 }
 
-[data-sileo-viewport] {
-  --sileo-width: min(360px, calc(100vw - 2rem));
-  z-index: 3000 !important;
-}
-
-[data-sileo-toast] {
-  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.46));
-}
-
-.tattoo-toast-title {
-  color: var(--accent-gold);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  text-transform: none;
-}
-
-.tattoo-toast-description {
-  color: rgba(239, 226, 207, 0.72);
-}
-
-.tattoo-toast-badge {
-  background: rgba(212, 170, 90, 0.13);
-}
-
 .page-shell {
   padding: 2rem 0 3rem;
 }
