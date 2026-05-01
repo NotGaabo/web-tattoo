@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiClock, FiFileText, FiMessageSquare, FiShield } from 'react-icons/fi';
 import { useAuthStore } from '../context/store';
-import { appointmentService } from '../services/api';
 import './Portal.css';
 
 const portalCards = [
@@ -30,54 +29,6 @@ const portalCards = [
 export default function Portal() {
   const user = useAuthStore((state) => state.user);
   const secretaryUrl = import.meta.env.VITE_SECRETARY_URL || '/web';
-  const [appointments, setAppointments] = useState([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadAppointments = async () => {
-      setLoadingAppointments(true);
-      try {
-        const response = await appointmentService.getUserAppointments();
-        const items = response?.data || response || [];
-        if (mounted && Array.isArray(items)) {
-          setAppointments(items);
-        }
-      } catch (error) {
-        if (mounted) {
-          setAppointments([]);
-        }
-      } finally {
-        if (mounted) {
-          setLoadingAppointments(false);
-        }
-      }
-    };
-
-    loadAppointments();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const nextAppointment = useMemo(() => {
-    if (!appointments.length) {
-      return null;
-    }
-
-    const upcoming = appointments
-      .filter((item) => {
-        if (!item.appointment_datetime) {
-          return false;
-        }
-        return new Date(item.appointment_datetime).getTime() >= Date.now();
-      })
-      .sort((a, b) => new Date(a.appointment_datetime) - new Date(b.appointment_datetime));
-
-    return upcoming[0] || appointments[0];
-  }, [appointments]);
 
   return (
     <div className="portal-page">
@@ -97,8 +48,8 @@ export default function Portal() {
             </p>
 
             <div className="portal-hero-actions">
-              <Link to="/appointment" className="btn btn-primary">
-                Agendar cita <FiArrowRight />
+              <Link to="/contact" className="btn btn-primary">
+                Enviar referencia para cotizar <FiArrowRight />
               </Link>
               <a href={secretaryUrl} className="btn btn-secondary">
                 Area secretaria
@@ -131,28 +82,6 @@ export default function Portal() {
               </motion.article>
             );
           })}
-        </div>
-      </section>
-
-      <section className="portal-overview">
-        <div className="container">
-          <div className="page-card">
-            <span className="eyebrow">Siguiente cita</span>
-            <h2>Tu próxima cita vinculada</h2>
-            {loadingAppointments ? (
-              <p>Cargando tus citas...</p>
-            ) : nextAppointment ? (
-              <div>
-                <p>
-                  <strong>{nextAppointment.artist_name}</strong> · {nextAppointment.service_name}
-                </p>
-                <p>{new Date(nextAppointment.appointment_datetime).toLocaleString('es-ES')}</p>
-                <p>{nextAppointment.work_type}</p>
-              </div>
-            ) : (
-              <p>Por ahora no tienes citas agendadas.</p>
-            )}
-          </div>
         </div>
       </section>
 

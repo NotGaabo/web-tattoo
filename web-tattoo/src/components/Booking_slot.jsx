@@ -93,7 +93,7 @@ function BookingSlot({ slot, index }) {
 
       {/* Botón — texto negro visible sobre dorado */}
       <Link
-        to={`/appointment?artistId=${slot.artistId}`}
+        to="/contact"
         style={{
           display: 'flex',
           alignItems: 'center',

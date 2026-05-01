@@ -10,7 +10,6 @@
     <menuitem id="menu_tattoo_services" name="Services" parent="menu_tattoo_root" sequence="30" action="action_tattoo_service"/>
 
     <menuitem id="menu_tattoo_artists" name="Artists" parent="menu_tattoo_root" sequence="40" action="action_tattoo_artist"/>
-    <menuitem id="menu_tattoo_gallery" name="Gallery" parent="menu_tattoo_root" sequence="45" action="action_tattoo_artist_gallery"/>
 
     <menuitem id="menu_tattoo_operations" name="Operations" parent="menu_tattoo_root" sequence="50"/>
     <menuitem id="menu_tattoo_orders" name="Orders" parent="menu_tattoo_operations" sequence="10" action="action_tattoo_order"/>

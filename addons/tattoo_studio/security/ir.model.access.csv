@@ -5,8 +5,6 @@ access_tattoo_service_user,tattoo.service user,model_tattoo_service,base.group_u
 access_tattoo_service_manager,tattoo.service manager,model_tattoo_service,base.group_erp_manager,1,1,1,1
 access_tattoo_artist_user,tattoo.artist user,model_tattoo_artist,base.group_user,1,0,0,0
 access_tattoo_artist_manager,tattoo.artist manager,model_tattoo_artist,base.group_erp_manager,1,1,1,1
-access_tattoo_artist_gallery_user,tattoo.artist.gallery user,model_tattoo_artist_gallery,base.group_user,1,1,1,0
-access_tattoo_artist_gallery_manager,tattoo.artist.gallery manager,model_tattoo_artist_gallery,base.group_erp_manager,1,1,1,1
 access_tattoo_order_user,tattoo.order user,model_tattoo_order,base.group_user,1,1,1,0
 access_tattoo_order_manager,tattoo.order manager,model_tattoo_order,base.group_erp_manager,1,1,1,1
 access_tattoo_order_line_user,tattoo.order.line user,model_tattoo_order_line,base.group_user,1,1,1,1
@@ -17,5 +15,3 @@ access_tattoo_review_manager,tattoo.review manager,model_tattoo_review,base.grou
 access_tattoo_skill_manager,tattoo.skill manager,model_tattoo_skill,base.group_erp_manager,1,1,1,1
 access_tattoo_portfolio_user,tattoo.portfolio.image user,model_tattoo_portfolio_image,base.group_user,1,0,0,0
 access_tattoo_portfolio_manager,tattoo.portfolio.image manager,model_tattoo_portfolio_image,base.group_erp_manager,1,1,1,1
-access_tattoo_artist_availability_manager,tattoo.artist.availability manager,model_tattoo_artist_availability,base.group_erp_manager,1,1,1,1
-access_tattoo_exception_manager,tattoo.exception manager,model_tattoo_exception,base.group_erp_manager,1,1,1,1

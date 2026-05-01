@@ -1,25 +1,8 @@
 import axios from 'axios';
-import { useAuthStore } from '../context/store.js';
 
 // En desarrollo (sin VITE_API_URL), usa el proxy de Vite
 // En producción, puede especificarse VITE_API_URL
 const API_URL = import.meta.env.VITE_API_URL || '/';
-
-export function resolveBackendUrl(path = '') {
-  if (!path) {
-    return '';
-  }
-
-  if (/^https?:\/\//i.test(path) || path.startsWith('data:')) {
-    return path;
-  }
-
-  if (API_URL === '/' || API_URL === '') {
-    return path;
-  }
-
-  return `${API_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
-}
 
 /**
  * Cliente HTTP configurado con la URL base de la API
@@ -29,15 +12,6 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
-});
-
-// Interceptor para agregar token de auth
-apiClient.interceptors.request.use((config) => {
-  const { token } = useAuthStore.getState();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 /**
@@ -147,31 +121,6 @@ export const tattooArtistService = {
 };
 
 /**
- * Servicio para gestionar la galería de tatuajes
- */
-export const galleryService = {
-  getAll: async () => {
-    try {
-      const response = await apiClient.get('/api/gallery');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching gallery:', error);
-      return [];
-    }
-  },
-
-  getByArtist: async (artistId) => {
-    try {
-      const response = await apiClient.get(`/api/artists/${artistId}/gallery`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching artist gallery:', error);
-      return null;
-    }
-  },
-};
-
-/**
  * Servicio para gestionar órdenes de compra
  */
 export const orderService = {
@@ -264,41 +213,15 @@ export const appointmentService = {
   },
 
   /**
-   * Obtiene las citas disponibles de un tatuador en una fecha específica
+   * Obtiene las citas disponibles de un tatuador
    */
-  getAvailable: async (artistId, date) => {
+  getAvailable: async (artistId) => {
     try {
-      const response = await apiClient.get(`/api/artists/${artistId}/availability?date=${date}`);
+      const response = await apiClient.get(`/api/artists/${artistId}/availability`);
       return response.data;
     } catch (error) {
       console.error('Error fetching availability:', error);
       return [];
-    }
-  },
-
-  /**
-   * Obtiene las citas del usuario
-   */
-  getUserAppointments: async () => {
-    try {
-      const response = await apiClient.get('/api/appointments');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      return [];
-    }
-  },
-
-  /**
-   * Actualiza una cita (ej. cancelar)
-   */
-  update: async (appointmentId, updateData) => {
-    try {
-      const response = await apiClient.put(`/api/appointments/${appointmentId}`, updateData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating appointment:', error);
-      throw error;
     }
   }
 };

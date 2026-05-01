@@ -18,13 +18,11 @@ export default function Header() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const clearSession = useAuthStore((state) => state.clearSession);
   const { studio } = useStudioMcp();
-  const sessionPath = user?.role === 'portal' ? '/portal' : '/gestion';
-  const sessionLabel = user?.role === 'portal' ? 'Portal' : 'Gestion';
 
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const navItems = [
     { to: '/', label: 'Inicio' },
-    { to: '/products', label: 'Tienda' },
+    { to: '/products', label: 'Aftercare' },
     { to: '/services', label: 'Servicios' },
     { to: '/artists', label: 'Artistas' },
     { to: '/contact', label: 'Contacto' },
@@ -181,7 +179,7 @@ export default function Header() {
 
           {/* CTA Reservar */}
           <Link
-            to="/appointment"
+            to="/contact"
             className="hidden md:inline-flex"
             style={{
               display: 'inline-flex',
@@ -211,7 +209,7 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               <Link
-                to={sessionPath}
+                to="/portal"
                 className="hidden md:inline-flex"
                 style={{
                   display: 'inline-flex',
@@ -230,7 +228,7 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)}
               >
                 <FiUser size={14} />
-                {user?.name?.split(' ')[0] || sessionLabel}
+                {user?.name?.split(' ')[0] || 'Portal'}
               </Link>
               <button
                 type="button"
@@ -350,7 +348,7 @@ export default function Header() {
           ))}
           <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
           <Link
-            to="/appointment"
+            to="/contact"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

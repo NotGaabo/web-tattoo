@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -11,7 +11,6 @@ import {
   FiStar,
 } from 'react-icons/fi';
 import { useStudioMcp } from '../context/StudioMcpContext';
-import { galleryService, resolveBackendUrl } from '../services/api';
 
 const container = {
   hidden: { opacity: 0 },
@@ -334,6 +333,24 @@ function ArtistCard({ artist, index }) {
   );
 }
 
+/* ─── Highlight bubble ─── */
+function HighlightBubble({ item: h, index }) {
+  return (
+    <div className="group flex w-44 flex-col items-center rounded-[26px] border border-white/[0.08] bg-white/[0.03] p-5 text-center transition hover:-translate-y-1.5 hover:border-[#D4AA5A]/40 cursor-pointer">
+      <div className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br ${h.tone}`}>
+        <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-black/80 text-sm font-bold uppercase tracking-[0.2em] text-[#C8C8C8]"
+          style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+          {String(index + 1).padStart(2, '0')}
+        </div>
+      </div>
+      <h4 className="mb-1 font-semibold text-white"
+        style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: 14, textTransform: 'none', letterSpacing: 0 }}>
+        {h.label}
+      </h4>
+      <p className="mb-0 text-xs text-white/45 leading-relaxed">{h.caption}</p>
+    </div>
+  );
+}
 /* ─── Booking slot ─── */
 function BookingSlot({ slot, index }) {
   return (
@@ -429,7 +446,7 @@ function BookingSlot({ slot, index }) {
 
       {/* Botón — texto negro visible sobre dorado */}
       <Link
-        to="/appointment"
+        to="/contact"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -459,64 +476,9 @@ function BookingSlot({ slot, index }) {
    HOME
 ════════════════════ */
 export default function Home() {
-  const { studio, artists, gallery, appointmentSlots, source, isLoading } = useStudioMcp();
-  const [odooGallery, setOdooGallery] = useState([]);
+  const { studio, artists, gallery, highlights, appointmentSlots, source, isLoading } = useStudioMcp();
   const featuredArtists = artists.slice(0, 3);
   const leadArtist = artists[0];
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadGallery() {
-      const response = await galleryService.getAll();
-      const items = response?.data || response || [];
-
-      if (!active) {
-        return;
-      }
-
-      if (!Array.isArray(items) || !items.length) {
-        setOdooGallery([]);
-        return;
-      }
-
-      const countByArtist = new Map();
-      const mapped = [];
-
-      items.forEach((item, index) => {
-        const artistId = item.artist_id || 'unknown';
-        const currentCount = countByArtist.get(artistId) || 0;
-
-        if (currentCount >= 3) {
-          return;
-        }
-
-        countByArtist.set(artistId, currentCount + 1);
-        mapped.push({
-          id: item.id || `${artistId}-${index}`,
-          artistId,
-          artistName: item.artist_name || 'Artist',
-          artistHandle: item.artist_handle || '',
-          style: item.tattoo_type_label || item.tattoo_type || 'Tattoo',
-          title: item.name || item.title || 'Tattoo piece',
-          imageUrl: resolveBackendUrl(item.image || ''),
-          tone: countByArtist.get(artistId) % 2 === 0
-            ? 'from-[#9f9f9f] via-[#5c5c5c] to-[#111111]'
-            : 'from-[#d8b46a] via-[#8b6b35] to-[#1a1a1a]',
-        });
-      });
-
-      setOdooGallery(mapped);
-    }
-
-    loadGallery();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const galleryItems = useMemo(() => (odooGallery.length ? odooGallery : gallery), [odooGallery, gallery]);
 
   const headingStyle = {
     fontFamily: 'Inter, system-ui, sans-serif',
@@ -563,16 +525,16 @@ export default function Home() {
               variants={itemAnim}
               style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: 16, lineHeight: 1.78, color: 'rgba(255,255,255,0.55)', maxWidth: 480, marginBottom: 32 }}
             >
-              {studio.accentLine || 'Rediseñamos la home para que se sienta Instagram-first: héroe cinemático, grid de galería y CTAs claros para reservar.'}
+              {studio.accentLine || 'Rediseñamos la home para que se sienta Instagram-first: héroe cinemático, grid de galería, stories horizontales y CTAs claros para reservar.'}
             </motion.p>
 
             <motion.div variants={itemAnim} style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 40 }}>
-              <Link
-                to="/appointment"
+              <a
+                href="#booking"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 9999, background: '#D4AA5A', padding: '13px 28px', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0a0a0a', textDecoration: 'none', fontFamily: 'Inter, system-ui, sans-serif', transition: 'opacity .2s' }}
               >
                 Reservar cita <FiArrowRight size={14} />
-              </Link>
+              </a>
               <a
                 href={studio.instagramUrl}
                 target="_blank"
@@ -585,7 +547,7 @@ export default function Home() {
 
             <motion.div variants={itemAnim} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
               {[
-                { label: 'Feed',     value: `${galleryItems.length} piezas`,   desc: 'Grid editorial con hover y overlay.' },
+                { label: 'Feed',     value: `${gallery.length} piezas`,   desc: 'Grid editorial con hover y overlay.' },
                 { label: 'Artistas', value: `${artists.length} perfiles`,  desc: 'Sincronizados por la capa MCP.' },
                 { label: 'Estado',   value: source === 'live' ? 'Live' : 'Fallback', desc: isLoading ? 'Sincronizando...' : 'Sin romper la lógica actual.' },
               ].map((s) => (
@@ -685,10 +647,37 @@ export default function Home() {
           </motion.div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-            {galleryItems.map((g, i) => (
+            {gallery.map((g, i) => (
               <GalleryTile key={g.id} item={g} index={i} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ══ HIGHLIGHTS ══ */}
+      <section id="highlights" style={{ padding: '100px 40px', borderTop: '0.5px solid rgba(255,255,255,0.06)', borderBottom: '0.5px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '0.85fr 1.15fr', gap: 60, alignItems: 'center' }}>
+          <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.25 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#D4AA5A', marginBottom: 20, fontFamily: 'Inter, system-ui, sans-serif' }}>
+              <span style={{ display: 'block', width: 28, height: 1, background: '#D4AA5A' }} />
+              Destacados · stories
+            </div>
+            <h2 style={{ ...headingStyle, fontSize: 'clamp(24px, 3vw, 38px)', fontWeight: 700, color: '#fff', marginBottom: 14, lineHeight: 1.12 }}>
+              Historias horizontales para estilos, consultas y sesiones recientes.
+            </h2>
+            <p style={{ margin: '0 0 28px', fontSize: 15, lineHeight: 1.75, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Tomamos la lógica de destacados de Instagram y la convertimos en una franja scrollable con círculos y labels claros.
+            </p>
+            <Link to="/artists" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 9999, border: '1px solid rgba(255,255,255,0.15)', padding: '12px 26px', fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fff', textDecoration: 'none', fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Explorar artistas <FiArrowRight size={14} />
+            </Link>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.25 }}
+            style={{ overflowX: 'auto', paddingBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 14, minWidth: 'max-content' }}>
+              {highlights.map((h, i) => <HighlightBubble key={h.id} item={h} index={i} />)}
+            </div>
+          </motion.div>
         </div>
       </section>
 
