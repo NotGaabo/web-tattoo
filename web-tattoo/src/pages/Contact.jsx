@@ -11,7 +11,6 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     subject: '',
     message: ''
   });
@@ -40,6 +39,19 @@ export default function Contact() {
     try {
       // Simular envío
       await new Promise(resolve => setTimeout(resolve, 1000));
+      const message = [
+        'Hola, quiero enviar una consulta desde la web.',
+        '',
+        `Nombre: ${formData.name}`,
+        `Correo: ${formData.email}`,
+        `Asunto: ${formData.subject || 'Sin asunto'}`,
+        '',
+        'Mensaje:',
+        formData.message,
+      ].join('\n');
+
+      const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
       
       showNotification('Mensaje enviado correctamente. Te contactaremos pronto!', 'success');
       
@@ -47,7 +59,6 @@ export default function Contact() {
       setFormData({
         name: '',
         email: '',
-        phone: '',
         subject: '',
         message: ''
       });
@@ -178,20 +189,6 @@ export default function Contact() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="tu@email.com"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Teléfono */}
-            <div className="form-group">
-              <label htmlFor="phone">Teléfono</label>
-              <input
-                id="phone"
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+34 666 777 888"
                 disabled={isSubmitting}
               />
             </div>

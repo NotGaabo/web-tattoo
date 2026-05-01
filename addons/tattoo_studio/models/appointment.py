@@ -19,7 +19,7 @@ class TattooAppointment(models.Model):
     service_id = fields.Many2one('tattoo.service', string='Service', required=True)
     
     # Fechas y horarios
-    appointment_datetime = fields.Datetime(string='Appointment Date & Time', required=True)
+    appointment_datetime = fields.Datetime(string='Appointment Date & Time', required=False)
     duration_hours = fields.Float(string='Duration (hours)', compute='_compute_duration', store=True)
     end_datetime = fields.Datetime(string='End Date & Time', compute='_compute_end_datetime', store=True)
     
@@ -115,9 +115,9 @@ class TattooAppointment(models.Model):
 
     @api.constrains('appointment_datetime')
     def _check_future_date(self):
-        """Valida que la cita sea en el futuro"""
+        """Valida que la cita sea en el futuro si se proporciona datetime"""
         for appointment in self:
-            if appointment.appointment_datetime < fields.Datetime.now():
+            if appointment.appointment_datetime and appointment.appointment_datetime < fields.Datetime.now():
                 raise ValidationError('Appointment date must be in the future!')
 
     def action_confirm(self):

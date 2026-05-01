@@ -73,7 +73,7 @@ export default function Services() {
     showNotification(`Redirigiendo a WhatsApp para agendar "${service.name}"`, 'info');
     // En producción, esto abriría WhatsApp con un mensaje preformulado
     window.open(
-      `https://wa.me/34666777888?text=Hola! Me gustaría agendar: ${service.name}`,
+      `https://wa.me/8097147813?text=Hola! Me gustaría agendar: ${service.name}`,
       '_blank'
     );
   };
