@@ -163,7 +163,7 @@ class TattooAppointmentController(http.Controller):
 
         appointments = request.env['tattoo.appointment'].sudo().search([
             ('customer_id', '=', customer.id)
-        ], order='appointment_datetime desc nulls last')
+        ], order='appointment_datetime desc')
 
         return self._response({
             'success': True,
@@ -184,7 +184,7 @@ class TattooAppointmentController(http.Controller):
         except json.JSONDecodeError:
             return self._response({'success': False, 'message': 'Invalid JSON'}, status=400)
 
-        required_fields = ['artist_id', 'service_id']
+        required_fields = ['artist_id', 'service_id', 'appointment_datetime']
         for field in required_fields:
             if field not in data:
                 return self._response({'success': False, 'message': f'Missing {field}'}, status=400)
@@ -199,51 +199,44 @@ class TattooAppointmentController(http.Controller):
         if not artist.exists() or not service.exists():
             return self._response({'success': False, 'message': 'Invalid artist or service'}, status=400)
 
-        # Validate datetime if provided
-        appt_datetime_str = data.get('appointment_datetime') if data else None
-        appt_datetime = None
-        
-        if appt_datetime_str:
-            try:
-                appt_datetime = datetime.fromisoformat(appt_datetime_str.replace('Z', '+00:00'))
-                if appt_datetime.tzinfo is not None:
-                    appt_datetime = appt_datetime.astimezone(timezone.utc).replace(tzinfo=None)
-            except (ValueError, AttributeError):
-                return self._response({'success': False, 'message': 'Invalid datetime format'}, status=400)
+        # Validate datetime
+        try:
+            appt_datetime = datetime.fromisoformat(data['appointment_datetime'].replace('Z', '+00:00'))
+            if appt_datetime.tzinfo is not None:
+                appt_datetime = appt_datetime.astimezone(timezone.utc).replace(tzinfo=None)
+        except ValueError:
+            return self._response({'success': False, 'message': 'Invalid datetime format'}, status=400)
 
-            if appt_datetime <= datetime.utcnow():
-                return self._response({'success': False, 'message': 'Appointment must be in the future'}, status=400)
+        if appt_datetime <= datetime.utcnow():
+            return self._response({'success': False, 'message': 'Appointment must be in the future'}, status=400)
 
-            # Check availability if datetime is provided
-            date_str = appt_datetime.date().isoformat()
-            slots = self._get_available_slots(data['artist_id'], date_str)
-            slot_start = appt_datetime
-            slot_end = slot_start + timedelta(hours=service.estimated_time_hours)
+        # Check availability
+        date_str = appt_datetime.date().isoformat()
+        slots = self._get_available_slots(data['artist_id'], date_str)
+        slot_start = appt_datetime
+        slot_end = slot_start + timedelta(hours=service.estimated_time_hours)
 
-            available = any(
-                datetime.fromisoformat(slot['start']) <= slot_start and datetime.fromisoformat(slot['end']) >= slot_end
-                for slot in slots
-            )
-            if not available:
-                return self._response({'success': False, 'message': 'Time slot not available'}, status=400)
+        available = any(
+            datetime.fromisoformat(slot['start']) <= slot_start and datetime.fromisoformat(slot['end']) >= slot_end
+            for slot in slots
+        )
+        if not available:
+            return self._response({'success': False, 'message': 'Time slot not available'}, status=400)
 
         # Create appointment
-        try:
-            appointment = request.env['tattoo.appointment'].sudo().create({
-                'customer_id': customer.id,
-                'artist_id': data['artist_id'],
-                'service_id': data['service_id'],
-                'appointment_datetime': appt_datetime,
-                'work_type': data.get('work_type', 'new'),
-                'color_preference': data.get('color_preference'),
-                'size_area': data.get('size_area') or data.get('body_area'),
-                'design_description': data.get('design_description'),
-                'allergies': data.get('allergies') or data.get('medical_info') or '',
-                'medications': data.get('medications') or '',
-                'previous_tattoos': bool(data.get('previous_tattoos', False)),
-            })
-        except Exception as e:
-            return self._response({'success': False, 'message': f'Error creating appointment: {str(e)}'}, status=500)
+        appointment = request.env['tattoo.appointment'].sudo().create({
+            'customer_id': customer.id,
+            'artist_id': data['artist_id'],
+            'service_id': data['service_id'],
+            'appointment_datetime': appt_datetime,
+            'work_type': data.get('work_type', 'new'),
+            'color_preference': data.get('color_preference'),
+            'size_area': data.get('size_area') or data.get('body_area'),
+            'design_description': data.get('design_description'),
+            'allergies': data.get('allergies') or data.get('medical_info') or '',
+            'medications': data.get('medications') or '',
+            'previous_tattoos': bool(data.get('previous_tattoos', False)),
+        })
 
         return self._response({
             'success': True,

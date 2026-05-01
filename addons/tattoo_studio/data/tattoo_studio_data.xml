@@ -104,7 +104,6 @@
         </record>
 
         <!-- Artists -->
-<<<<<<< HEAD
         <record id="artist_carlos" model="tattoo.artist">
             <field name="name">Carlos Martínez</field>
             <field name="email">carlos@tattoostudio.com</field>
@@ -114,7 +113,8 @@
             <field name="biography">Expert in realistic tattoos with incredible details. My passion is creating works of art on skin.</field>
             <field name="skill_ids" eval="[(4, ref('skill_realism'))]"/>
             <field name="service_ids" eval="[(4, ref('service_small')), (4, ref('service_medium')), (4, ref('service_large'))]"/>
-=======
+        </record>
+
         <record id="artist_memo" model="tattoo.artist">
             <field name="name">Memo</field>
             <field name="email">memo@tattoostudio.com</field>
@@ -270,7 +270,6 @@
             <field name="artist_id" ref="artist_memo"/>
             <field name="tattoo_type">watercolor</field>
             <field name="description">Beautiful watercolor phoenix tattoo with realistic details</field>
->>>>>>> bf322bb (Web landing solitri y sistemaa de citas corregido correctamente)
         </record>
 
         <record id="gallery_memo_2" model="tattoo.artist.gallery">

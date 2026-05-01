@@ -91,14 +91,14 @@ web-tatoo/
    npm run dev
    ```
 
-   - Access at http://localhost:3000
+   - Access at http://localhost:3000 (or 3001 if Vite increments the port)
 
 ### Environment Variables
 
 Create a `.env` file in the root directory:
 
 ```env
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8009
 ```
 
 ## API Integration
@@ -123,7 +123,7 @@ The frontend communicates with Odoo through the following endpoints:
 
 ### Odoo (tattoo_odoo)
 
-- Port: 8000 (web interface)
+- Port: 8009 (web interface)
 - Port: 8072 (websocket)
 - Admin User: admin
 - Admin Password: admin

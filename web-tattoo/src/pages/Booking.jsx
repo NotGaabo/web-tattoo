@@ -82,6 +82,21 @@ export default function Booking() {
     if (!artistValue || !dateValue) {
       return;
     }
+
+    setLoadingSlots(true);
+    try {
+      const response = await appointmentService.getAvailable(artistValue, dateValue);
+      if (response.success) {
+        setAvailableSlots(response.data || []);
+      } else {
+        setAvailableSlots([]);
+      }
+    } catch (error) {
+      showNotification('Error obteniendo horarios disponibles', 'error');
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
   };
 
   const loadData = async () => {
@@ -127,8 +142,8 @@ export default function Booking() {
       return;
     }
 
-    if (!selectedService) {
-      showNotification('Selecciona un servicio', 'warning');
+    if (!selectedSlot || !selectedService) {
+      showNotification('Selecciona un horario y servicio', 'warning');
       return;
     }
 
@@ -137,7 +152,7 @@ export default function Booking() {
       const appointmentData = {
         artist_id: parseInt(selectedArtistId, 10),
         service_id: selectedService.id,
-        appointment_datetime: selectedSlot ? selectedSlot.start : null,
+        appointment_datetime: selectedSlot.start,
         work_type: workType,
         size_area: tattooArea,
         allergies,
@@ -181,7 +196,7 @@ export default function Booking() {
           className="booking-header"
         >
           <h1>Agendar cita</h1>
-          <p>Selecciona tatuador y tipo de trabajo disponible.</p>
+          <p>Selecciona tatuador, tipo de trabajo y horario disponible.</p>
         </motion.div>
 
         <div className="booking-content">
@@ -262,6 +277,56 @@ export default function Booking() {
               min={new Date().toISOString().split('T')[0]}
               disabled={!selectedArtistId}
             />
+            {!selectedArtistId && (
+              <p style={{ marginTop: '0.75rem', color: 'rgba(255,255,255,0.55)' }}>
+                Primero selecciona un tatuador para ver horarios disponibles.
+              </p>
+            )}
+          </div>
+
+          <div className="booking-section">
+            <h3><FiClock /> Horarios Disponibles</h3>
+            {!selectedArtistId || !selectedDate ? (
+              <p className="booking-hint">
+                Selecciona un tatuador y una fecha para ver los horarios disponibles.
+              </p>
+            ) : loadingSlots ? (
+              <p className="booking-hint">Buscando horarios disponibles...</p>
+            ) : (
+              <>
+                <div className="slots-grid">
+                  {availableSlots.map((slot, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`slot-button ${selectedSlot === slot ? 'selected' : ''}`}
+                      onClick={() => setSelectedSlot(slot)}
+                    >
+                      {new Date(slot.start).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </button>
+                  ))}
+                </div>
+                {availableSlots.length === 0 && (
+                  <p className="booking-hint">
+                    No hay horarios disponibles para esta fecha. Prueba otro día o cambia de tatuador.
+                  </p>
+                )}
+              </>
+            )}
+
+            {selectedArtistId && selectedDate && (
+              <button
+                type="button"
+                className="booking-secondary-button"
+                onClick={() => loadSlots(selectedArtistId, selectedDate)}
+                disabled={loadingSlots}
+              >
+                {loadingSlots ? 'Buscando...' : 'Buscar horarios'}
+              </button>
+            )}
           </div>
 
           <div className="booking-section">
@@ -284,7 +349,7 @@ export default function Booking() {
           <div className="booking-section">
             <h3><FiCheck /> Enviar cita</h3>
             <p className="booking-hint">
-              Confirma la cita cuando ya tengas artista y servicio seleccionado.
+              Confirma la cita cuando ya tengas artista, servicio y horario seleccionado.
             </p>
             <div className="booking-summary-inline">
               <p><strong>Artista:</strong> {artist?.name || 'Pendiente'}</p>
@@ -295,7 +360,7 @@ export default function Booking() {
             <button
               className="booking-confirm-button"
               onClick={handleBooking}
-              disabled={booking || !selectedArtistId || !selectedService}
+              disabled={booking || !selectedArtistId || !selectedService || !selectedSlot}
             >
               {booking ? 'Reservando...' : 'Enviar cita'}
               <FiCheck />
