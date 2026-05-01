@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiArrowUpRight, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
 import { FaFacebookF, FaInstagram, FaXTwitter } from 'react-icons/fa6';
+import { useAuthStore } from '../context/store';
 import { useStudioMcp } from '../context/StudioMcpContext';
 
 const GOLD = '#D4AA5A';
@@ -31,7 +32,14 @@ const linkStyle = {
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const secretaryUrl = import.meta.env.VITE_SECRETARY_URL || '/web';
+  const user = useAuthStore((state) => state.user);
   const { studio, artists } = useStudioMcp();
+  const sessionPath = user?.role === 'portal' ? '/portal' : user?.role ? '/gestion' : '/portal';
+  const sessionLabel = user?.role === 'portal'
+    ? 'Portal cliente'
+    : user?.role
+      ? 'Gestión interna'
+      : 'Portal cliente';
 
   return (
     <footer
@@ -137,7 +145,7 @@ export default function Footer() {
               {[
                 { to: '/', text: 'Inicio', internal: true },
                 { to: '/auth?mode=register', text: 'Registro portal', internal: true },
-                { to: '/portal', text: 'Portal cliente', internal: true },
+                { to: sessionPath, text: sessionLabel, internal: true },
                 { to: '/services', text: 'Servicios', internal: true },
                 { to: secretaryUrl, text: 'Área secretaría', internal: false },
               ].map((item) => (

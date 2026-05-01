@@ -17,6 +17,7 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const showNotification = useUIStore(state => state.showNotification);
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '18097147813';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,10 +39,22 @@ export default function Contact() {
     setIsSubmitting(true);
 
     try {
-      // Simular envío
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const message = [
+        'Hola, quiero enviar una consulta desde la web.',
+        '',
+        `Nombre: ${formData.name}`,
+        `Correo: ${formData.email}`,
+        `Telefono: ${formData.phone || 'No indicado'}`,
+        `Asunto: ${formData.subject || 'Sin asunto'}`,
+        '',
+        'Mensaje:',
+        formData.message,
+      ].join('\n');
+
+      const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
       
-      showNotification('Mensaje enviado correctamente. Te contactaremos pronto!', 'success');
+      showNotification('Abrimos WhatsApp con tu mensaje listo para enviar.', 'success');
       
       // Limpiar formulario
       setFormData({

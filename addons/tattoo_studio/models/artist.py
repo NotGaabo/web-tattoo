@@ -20,6 +20,7 @@ class TattooArtist(models.Model):
     specialization = fields.Char(string='Specialization')
     biography = fields.Html(string='Biography')
     years_of_experience = fields.Integer(string='Years of Experience')
+    image_1920 = fields.Image(string='Artist Photo')
     
     # Habilidades
     skill_ids = fields.Many2many('tattoo.skill', 'artist_skill_rel', 'artist_id', 'skill_id', string='Skills')
@@ -29,6 +30,7 @@ class TattooArtist(models.Model):
     
     # Portafolio
     portfolio_image_ids = fields.One2many('tattoo.portfolio.image', 'artist_id', string='Portfolio Images')
+    gallery_image_ids = fields.One2many('tattoo.artist.gallery', 'artist_id', string='Gallery Images')
     
     # Relaciones
     appointment_ids = fields.One2many('tattoo.appointment', 'artist_id', string='Appointments')
@@ -41,6 +43,8 @@ class TattooArtist(models.Model):
     
     # Disponibilidad y horarios
     is_available = fields.Boolean(string='Available for Appointments', default=True)
+    availability_ids = fields.One2many('tattoo.artist.availability', 'artist_id', string='Availability Schedule')
+    exception_ids = fields.One2many('tattoo.exception', 'artist_id', string='Exceptions')
     working_hours = fields.Text(string='Working Hours')
     
     # Estado
@@ -77,7 +81,19 @@ class TattooArtist(models.Model):
             'biography': self.biography or '',
             'skills': [skill.name for skill in self.skill_ids],
             'portfolio': [img.image_url for img in self.portfolio_image_ids],
-            'available': self.is_available
+            'gallery': [
+                {
+                    'id': image.id,
+                    'name': image.name or '',
+                    'type': image.tattoo_type or '',
+                    'description': image.description or '',
+                    'image': image.image_url or '',
+                    'work_date': image.work_date.isoformat() if image.work_date else '',
+                }
+                for image in self.gallery_image_ids
+            ],
+            'available': self.is_available,
+            'image': f'/web/image/tattoo.artist/{self.id}/image_1920' if self.image_1920 else '',
         }
 
 

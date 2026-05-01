@@ -1,4 +1,5 @@
 import { appointmentService, tattooArtistService } from './api';
+import { resolveBackendUrl } from './api';
 
 const TONES = [
   'from-[#d8b46a] via-[#8b6b35] to-[#1a1a1a]',
@@ -162,7 +163,7 @@ function normalizePortfolio(portfolio, artist, index) {
     id: `${artist.id}-portfolio-${offset}`,
     title: `${artist.displayName} Piece ${offset + 1}`,
     badge: artist.skills[offset] || artist.specialization,
-    imageUrl: typeof item === 'string' ? item : item?.imageUrl || item?.url || '',
+    imageUrl: resolveBackendUrl(typeof item === 'string' ? item : item?.imageUrl || item?.url || ''),
     tone: TONES[(index + offset) % TONES.length],
   }));
 }
@@ -195,7 +196,7 @@ function normalizeArtistRecord(record, index) {
     location: record.location || 'Studio Floor',
     skills: skills.slice(0, 4),
     socialUrl: handle ? `https://www.instagram.com/${handle.replace('@', '')}/` : STUDIO_PROFILE.instagramUrl,
-    avatarUrl: record.avatarUrl || '/skin-art-symbol.svg',
+    avatarUrl: resolveBackendUrl(record.image || record.avatarUrl || ''),
     tone: TONES[index % TONES.length],
   };
 
@@ -252,8 +253,8 @@ function buildHighlights(artists) {
       tone: TONES[1],
     },
     {
-      id: 'aftercare',
-      label: 'Aftercare',
+      id: 'tienda',
+      label: 'Tienda',
       caption: 'Cuidado posterior premium',
       tone: TONES[2],
     },

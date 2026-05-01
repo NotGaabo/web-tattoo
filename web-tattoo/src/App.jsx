@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Toaster } from 'sileo';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Cart from './components/Cart';
-import NotificationCenter from './components/NotificationCenter';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Products from './pages/Products';
@@ -14,10 +14,14 @@ import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Auth from './pages/Auth';
 import Portal from './pages/Portal';
+import Gestion from './pages/Gestion';
+import Booking from './pages/Booking';
+import ArtistDetail from './pages/ArtistDetail';
 import Debug from './pages/Debug';
 import { useAuthStore } from './context/store';
 import { StudioMcpProvider } from './context/StudioMcpContext';
 import odooAuthService from './services/odooAuth';
+import 'sileo/styles.css';
 import './App.css';
 
 function App() {
@@ -30,6 +34,7 @@ function App() {
 
 function AppLayout() {
   const location = useLocation();
+  const isManagementArea = location.pathname.startsWith('/gestion');
   const setSession = useAuthStore((state) => state.setSession);
   const clearSession = useAuthStore((state) => state.clearSession);
   const setCheckingSession = useAuthStore((state) => state.setCheckingSession);
@@ -41,19 +46,21 @@ function AppLayout() {
       setCheckingSession(true);
 
       try {
-        const session = await odooAuthService.getSessionInfo();
+        const storedToken = useAuthStore.getState().token;
+        const session = storedToken ? await odooAuthService.getSessionInfo(storedToken) : null;
 
         if (!isMounted) {
           return;
         }
 
         if (session) {
-          setSession(session);
+          setSession(session, session.token || storedToken);
         } else {
           clearSession();
         }
       } catch (error) {
         if (isMounted) {
+          clearSession();
           setCheckingSession(false);
         }
       }
@@ -69,9 +76,22 @@ function AppLayout() {
   return (
     <StudioMcpProvider>
       <div className="app">
-        <Header />
-        <Cart />
-        <NotificationCenter />
+        {!isManagementArea && <Header />}
+        {!isManagementArea && <Cart />}
+        <Toaster
+          position="bottom-right"
+          theme="light"
+          offset={{ bottom: isManagementArea ? 20 : 24, right: 20 }}
+          options={{
+            fill: '#1b1712',
+            roundness: 18,
+            styles: {
+              title: 'tattoo-toast-title',
+              description: 'tattoo-toast-description',
+              badge: 'tattoo-toast-badge',
+            },
+          }}
+        />
 
         <main className="main-content">
           <AnimatePresence mode="wait">
@@ -80,6 +100,9 @@ function AppLayout() {
               <Route path="/products" element={<Products />} />
               <Route path="/services" element={<Services />} />
               <Route path="/artists" element={<Artists />} />
+              <Route path="/artists/:artistId" element={<ArtistDetail />} />
+              <Route path="/booking/:artistId" element={<Booking />} />
+              <Route path="/appointment" element={<Booking />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/auth" element={<Auth />} />
@@ -87,8 +110,16 @@ function AppLayout() {
               <Route
                 path="/portal"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['portal']}>
                     <Portal />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/gestion/*"
+                element={
+                  <ProtectedRoute allowedRoles={['internal', 'admin']}>
+                    <Gestion />
                   </ProtectedRoute>
                 }
               />
@@ -97,7 +128,7 @@ function AppLayout() {
           </AnimatePresence>
         </main>
 
-        <Footer />
+        {!isManagementArea && <Footer />}
       </div>
     </StudioMcpProvider>
   );

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="Tattoo needles">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d4aa5a"/>
+      <stop offset="1" stop-color="#6a4d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="480" rx="48" fill="#0f0f0f"/>
+  <circle cx="360" cy="132" r="86" fill="url(#g)" opacity=".14"/>
+  <circle cx="140" cy="352" r="108" fill="url(#g)" opacity=".12"/>
+  <g fill="none" stroke="url(#g)" stroke-linecap="round" stroke-width="18">
+    <path d="M140 332l174-174"/>
+    <path d="M170 362l174-174"/>
+    <path d="M200 392l174-174"/>
+  </g>
+  <g fill="#d4aa5a">
+    <circle cx="136" cy="336" r="22"/>
+    <circle cx="166" cy="366" r="22"/>
+    <circle cx="196" cy="396" r="22"/>
+  </g>
+</svg>

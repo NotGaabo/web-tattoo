@@ -1,15 +1,25 @@
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 function normalizeSession(data = {}) {
+  const role = data.role || (data.is_portal === false ? 'internal' : 'portal');
+  const isAdmin = role === 'admin' || Boolean(data.is_admin);
+  const isPortal = role === 'portal';
+
   return {
     id: data.id || null,
     name: data.name || '',
     email: data.email || '',
     token: data.token || '',
-    role: data.role || 'portal',
-    is_admin: data.is_admin || false,
-    is_portal: data.is_portal || true,
+    role,
+    user_type: data.user_type || (isPortal ? 'portal' : 'internal'),
+    is_admin: isAdmin,
+    is_portal: isPortal,
   };
+}
+
+export function getSessionHomePath(sessionOrRole) {
+  const role = typeof sessionOrRole === 'string' ? sessionOrRole : sessionOrRole?.role;
+  return role === 'portal' ? '/portal' : '/gestion';
 }
 
 async function apiCall(endpoint, method = 'GET', body = null, token = null) {

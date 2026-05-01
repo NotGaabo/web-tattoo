@@ -23,6 +23,9 @@
         <field name="arch" type="xml">
             <form string="Artist">
                 <sheet>
+                    <div class="oe_title">
+                        <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
+                    </div>
                     <h1>
                         <field name="name" placeholder="Artist Name"/>
                     </h1>
@@ -73,12 +76,61 @@
                                 </form>
                             </field>
                         </page>
+                        <page string="Gallery" name="gallery">
+                            <field name="gallery_image_ids">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="name"/>
+                                    <field name="tattoo_type"/>
+                                    <field name="work_date"/>
+                                    <field name="active"/>
+                                </list>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="artist_id"/>
+                                                <field name="tattoo_type"/>
+                                                <field name="work_date"/>
+                                                <field name="sequence"/>
+                                                <field name="active"/>
+                                            </group>
+                                            <group>
+                                                <field name="image" widget="image" class="oe_avatar" options="{'preview_image': 'image'}"/>
+                                            </group>
+                                        </group>
+                                        <field name="description"/>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
                         <page string="Appointments" name="appointments">
                             <field name="appointment_ids" readonly="1">
                                 <list>
                                     <field name="customer_id"/>
                                     <field name="appointment_datetime"/>
                                     <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Availability" name="availability">
+                            <field name="availability_ids">
+                                <list>
+                                    <field name="day_of_week"/>
+                                    <field name="start_time"/>
+                                    <field name="end_time"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Exceptions" name="exceptions">
+                            <field name="exception_ids">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="reason"/>
+                                    <field name="is_closed"/>
+                                    <field name="active"/>
                                 </list>
                             </field>
                         </page>
