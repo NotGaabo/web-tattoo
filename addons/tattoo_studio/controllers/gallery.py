@@ -1,60 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import json
-
 from odoo import http
 from odoo.http import request
-from werkzeug.wrappers import Response
+
+from .api_utils import TattooApiControllerMixin
 
 
-class TattooGalleryController(http.Controller):
-    _cors_headers = [
-        ('Content-Type', 'application/json'),
-        ('Access-Control-Allow-Origin', '*'),
-        ('Access-Control-Allow-Headers', 'Content-Type, Authorization'),
-        ('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'),
-    ]
-
-    def _response(self, payload, status=200):
-        body = json.dumps(payload, default=str)
-        response = Response(body, status=status, content_type='application/json')
-        for header, value in self._cors_headers:
-            response.headers[header] = value
-        return response
-
-    def _preflight(self):
-        return self._response({'success': True}, status=200)
-
-    def _json_body(self):
-        return request.httprequest.get_json(silent=True) or {}
-
-    def _extract_token(self):
-        auth_header = request.httprequest.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            return auth_header.split(' ', 1)[1].strip()
-        return request.httprequest.headers.get('X-API-Token', '').strip()
-
-    def _user_from_token(self, token):
-        if not token:
-            return False
-        return request.env['res.users'].sudo().search([
-            ('api_token', '=', token),
-        ], limit=1)
-
-    def _require_internal_user(self):
-        user = self._user_from_token(self._extract_token())
-        if not user:
-            return False, self._response({
-                'success': False,
-                'message': 'unauthorized',
-            }, status=401)
-        if user.share:
-            return False, self._response({
-                'success': False,
-                'message': 'forbidden',
-            }, status=403)
-        return user, None
-
+class TattooGalleryController(TattooApiControllerMixin, http.Controller):
     def _tattoo_type_label(self, tattoo_type):
         selection = dict(request.env['tattoo.artist.gallery']._fields['tattoo_type'].selection)
         return selection.get(tattoo_type, '')
@@ -82,24 +34,21 @@ class TattooGalleryController(http.Controller):
             domain.append(('tattoo_type', '=', tattoo_type))
         return domain
 
-    def _safe_int(self, value, default=None):
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return default
-
     @http.route('/api/gallery', type='http', auth='public', methods=['GET', 'POST', 'OPTIONS'], csrf=False)
     def gallery(self, **kwargs):
         if request.httprequest.method == 'OPTIONS':
             return self._preflight()
 
         if request.httprequest.method == 'GET':
+            internal_user = self._user_from_token(self._extract_token())
             artist_id = request.params.get('artist_id')
             tattoo_type = request.params.get('tattoo_type')
             domain = self._build_domain(
                 self._safe_int(artist_id),
                 tattoo_type or None,
             )
+            if not (internal_user and not internal_user.share):
+                domain.append(('active', '=', True))
             pieces = request.env['tattoo.artist.gallery'].sudo().search(domain, order='sequence, id desc')
             return self._response({
                 'success': True,
@@ -144,6 +93,7 @@ class TattooGalleryController(http.Controller):
             'sequence': int(data.get('sequence') or 10),
             'work_date': data.get('work_date') or False,
             'image': image,
+            'active': bool(data.get('active', True)),
         })
 
         return self._response({
@@ -166,6 +116,12 @@ class TattooGalleryController(http.Controller):
             }, status=404)
 
         if request.httprequest.method == 'GET':
+            internal_user = self._user_from_token(self._extract_token())
+            if not gallery.active and not (internal_user and not internal_user.share):
+                return self._response({
+                    'success': False,
+                    'message': 'gallery item not found',
+                }, status=404)
             return self._response({
                 'success': True,
                 'data': self._serialize_gallery(gallery),
@@ -238,9 +194,12 @@ class TattooGalleryController(http.Controller):
                 'message': 'artist not found',
             }, status=404)
 
-        pieces = request.env['tattoo.artist.gallery'].sudo().search([
-            ('artist_id', '=', artist_id),
-        ], order='sequence, id desc')
+        internal_user = self._user_from_token(self._extract_token())
+        domain = [('artist_id', '=', artist_id)]
+        if not (internal_user and not internal_user.share):
+            domain.append(('active', '=', True))
+
+        pieces = request.env['tattoo.artist.gallery'].sudo().search(domain, order='sequence, id desc')
         return self._response({
             'success': True,
             'data': {

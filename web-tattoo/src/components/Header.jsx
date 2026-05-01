@@ -18,6 +18,8 @@ export default function Header() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const clearSession = useAuthStore((state) => state.clearSession);
   const { studio } = useStudioMcp();
+  const sessionPath = user?.role === 'portal' ? '/portal' : '/gestion';
+  const sessionLabel = user?.role === 'portal' ? 'Portal' : 'Gestion';
 
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const navItems = [
@@ -209,7 +211,7 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               <Link
-                to="/portal"
+                to={sessionPath}
                 className="hidden md:inline-flex"
                 style={{
                   display: 'inline-flex',
@@ -228,7 +230,7 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)}
               >
                 <FiUser size={14} />
-                {user?.name?.split(' ')[0] || 'Portal'}
+                {user?.name?.split(' ')[0] || sessionLabel}
               </Link>
               <button
                 type="button"

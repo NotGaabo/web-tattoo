@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { sileo } from 'sileo';
 
 const isBrowser = typeof window !== 'undefined';
 const CART_STORAGE_KEY = 'web-tattoo-cart';
@@ -144,13 +145,21 @@ export const useUIStore = create((set) => ({
     })),
   closeCart: () => set({ isCartOpen: false }),
   setLoading: (loading) => set({ isLoading: loading }),
-  showNotification: (message, type = 'info') =>
-    set({
+  showNotification: (message, type = 'info') => {
+    const notify = sileo[type] || sileo.info;
+    notify({
+      title: message,
+      position: 'bottom-right',
+      duration: type === 'error' ? 5200 : 3600,
+    });
+
+    return set({
       notification: {
         id: Date.now(),
         message,
         type,
       },
-    }),
+    });
+  },
   clearNotification: () => set({ notification: null }),
 }));
