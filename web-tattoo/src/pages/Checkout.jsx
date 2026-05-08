@@ -2,61 +2,72 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-import { useCartStore, useUIStore } from '../context/store';
+import { useAuthStore, useCartStore, useUIStore } from '../context/store';
+import { orderService, productService } from '../services/api';
 import './Checkout.css';
 
 /**
  * Página de Checkout - Proceso de compra
  */
 export default function Checkout() {
-  const { items, total, clearCart } = useCartStore();
+  const { items, total, clearCart, syncAvailability } = useCartStore();
+  const user = useAuthStore(state => state.user);
   const showNotification = useUIStore(state => state.showNotification);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState(null);
+  const [notes, setNotes] = useState('');
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    paymentMethod: 'transfer'
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación
-    if (!formData.name || !formData.email || !formData.address || !formData.city) {
-      showNotification('Por favor, completa todos los campos requeridos', 'warning');
-      return;
+    setIsSubmitting(true);
+    try {
+      const refreshedProducts = await Promise.all(
+        items.map(async (item) => {
+          const response = await productService.getById(item.id);
+          return response?.data || response || null;
+        }),
+      );
+      const validProducts = refreshedProducts.filter(Boolean);
+      syncAvailability(validProducts);
+
+      const insufficientItem = items.find((item) => {
+        const freshProduct = validProducts.find((product) => Number(product.id) === Number(item.id));
+        const availableQuantity = Number(
+          freshProduct?.quantity_sellable ?? freshProduct?.quantity_available ?? 0,
+        );
+        return item.quantity > availableQuantity;
+      });
+
+      if (insufficientItem) {
+        const freshProduct = validProducts.find((product) => Number(product.id) === Number(insufficientItem.id));
+        const availableQuantity = Number(
+          freshProduct?.quantity_sellable ?? freshProduct?.quantity_available ?? 0,
+        );
+        showNotification(
+          `Actualizamos el stock de ${insufficientItem.name}. Ahora solo hay ${availableQuantity} unidad(es) disponibles.`,
+          'warning',
+        );
+        return;
+      }
+
+      const created = await orderService.create({
+        items,
+        notes,
+      });
+      setCreatedOrder(created?.data || created || null);
+      if (created?.whatsapp_url) {
+        window.open(created.whatsapp_url, '_blank', 'noopener,noreferrer');
+      }
+      showNotification('Orden creada y lista para confirmar por WhatsApp.', 'success');
+      setOrderPlaced(true);
+      clearCart();
+    } catch (error) {
+      showNotification(error.response?.data?.message || error.message || 'No se pudo crear la orden.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Simular creación de orden
-    const orderData = {
-      id: Math.random().toString(36).substr(2, 9).toUpperCase(),
-      items,
-      total,
-      customer: formData,
-      date: new Date().toISOString()
-    };
-
-    console.log('Orden creada:', orderData);
-    
-    // Guardar orden en localStorage (en producción sería en base de datos)
-    localStorage.setItem('lastOrder', JSON.stringify(orderData));
-    
-    showNotification('¡Orden creada exitosamente!', 'success');
-    setOrderPlaced(true);
-    clearCart();
   };
 
   // Si el carrito está vacío y no hay orden, mostrar mensaje
@@ -90,41 +101,31 @@ export default function Checkout() {
               <FiCheck size={48} />
             </div>
             <h1>¡Orden Confirmada!</h1>
-            <p>Tu orden ha sido procesada exitosamente</p>
+            <p>La orden fue guardada y te abrimos WhatsApp para confirmar los detalles.</p>
 
             {/* Detalles de la orden */}
             <div className="order-details">
               <h3>Detalles de la Orden</h3>
               <div className="detail-row">
                 <span>Número de Orden:</span>
-                <strong>#ORD-2024-001</strong>
+                <strong>{createdOrder?.order_number || 'Pendiente'}</strong>
               </div>
               <div className="detail-row">
                 <span>Total:</span>
-                <strong className="amount">${total.toFixed(2)}</strong>
+                <strong className="amount">${Number(createdOrder?.total_amount ?? total).toFixed(2)}</strong>
               </div>
               <div className="detail-row">
-                <span>Email:</span>
-                <strong>{formData.email}</strong>
+                <span>Cliente:</span>
+                <strong>{user?.name || 'Cliente'}</strong>
               </div>
             </div>
 
-            {/* Instrucciones de pago */}
-            <div className="payment-instructions">
-              <h3>Instrucciones de Pago</h3>
-              <div className="instruction-box">
-                <p><strong>Método:</strong> Transferencia Bancaria</p>
-                <p>
-                  <strong>Banco:</strong> Banco Principal España<br />
-                  <strong>IBAN:</strong> ES91 2100 0418 4502 0005 1332<br />
-                  <strong>Concepto:</strong> Orden #ORD-2024-001
-                </p>
-                <p className="important">
-                  Importante: Tu orden será procesada una vez confirmemos el pago.
-                  Recibirás un email de confirmación en {formData.email}
-                </p>
+            {notes ? (
+              <div className="order-details">
+                <h3>Notas para el estudio</h3>
+                <p>{notes}</p>
               </div>
-            </div>
+            ) : null}
 
             {/* Botones */}
             <div className="confirmation-actions">
@@ -165,107 +166,36 @@ export default function Checkout() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2>Información de Entrega</h2>
+          <h2>Confirmar orden</h2>
 
           <form onSubmit={handleSubmit} className="checkout-form">
-            {/* Nombre */}
             <div className="form-group">
-              <label htmlFor="name">Nombre Completo *</label>
+              <label>Cliente</label>
               <input
-                id="name"
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Juan Pérez"
-                required
+                value={user?.name || ''}
+                disabled
               />
             </div>
 
-            {/* Email */}
             <div className="form-group">
-              <label htmlFor="email">Email *</label>
+              <label>Correo</label>
               <input
-                id="email"
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="juan@example.com"
-                required
+                value={user?.email || ''}
+                disabled
               />
             </div>
 
-            {/* Teléfono */}
             <div className="form-group">
-              <label htmlFor="phone">Teléfono</label>
-              <input
-                id="phone"
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+34 666 777 888"
+              <label htmlFor="notes">Notas para WhatsApp</label>
+              <textarea
+                id="notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                placeholder="Ej. Quiero confirmar disponibilidad, forma de pago o algun detalle del pedido."
+                rows="5"
               />
-            </div>
-
-            {/* Dirección */}
-            <div className="form-group">
-              <label htmlFor="address">Dirección *</label>
-              <input
-                id="address"
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Calle Principal 123"
-                required
-              />
-            </div>
-
-            {/* Ciudad y Código Postal */}
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="city">Ciudad *</label>
-                <input
-                  id="city"
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="Madrid"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="postalCode">Código Postal *</label>
-                <input
-                  id="postalCode"
-                  type="text"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleChange}
-                  placeholder="28001"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Método de Pago */}
-            <div className="form-group">
-              <label>Método de Pago *</label>
-              <div className="payment-options">
-                <label className="payment-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="transfer"
-                    checked={formData.paymentMethod === 'transfer'}
-                    onChange={handleChange}
-                  />
-                  <span>Transferencia Bancaria</span>
-                </label>
-              </div>
             </div>
 
             {/* Botón */}
@@ -274,8 +204,9 @@ export default function Checkout() {
               className="btn btn-primary"
               style={{ width: '100%', marginTop: '1rem' }}
               whileTap={{ scale: 0.95 }}
+              disabled={isSubmitting}
             >
-              Completar Compra
+              {isSubmitting ? 'Procesando...' : 'Guardar y abrir WhatsApp'}
             </motion.button>
           </form>
         </motion.div>
@@ -305,18 +236,6 @@ export default function Checkout() {
               ))}
             </div>
 
-            {/* Subtotal */}
-            <div className="summary-subtotal">
-              <span>Subtotal:</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-
-            {/* Envío */}
-            <div className="summary-shipping">
-              <span>Envío:</span>
-              <span>Gratis</span>
-            </div>
-
             {/* Total */}
             <div className="summary-total">
               <span>Total:</span>
@@ -326,9 +245,9 @@ export default function Checkout() {
             {/* Info */}
             <div className="summary-info">
               <p>
-                ✓ Envío rápido y seguro<br />
-                ✓ Embalaje profesional<br />
-                ✓ Protección de comprador
+                ✓ La orden se guarda primero<br />
+                ✓ Luego confirmas detalles por WhatsApp<br />
+                ✓ Pago y entrega se coordinan contigo
               </p>
             </div>
           </div>

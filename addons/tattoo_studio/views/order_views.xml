@@ -23,8 +23,11 @@
         <field name="arch" type="xml">
             <form string="Order">
                 <header>
+    <button name="action_accept" string="Accept Payment" type="object"
+        invisible="state == 'cancelled' or state == 'done' or payment_state == 'paid'" class="btn-primary"/>
+
     <button name="action_confirm" string="Confirm" type="object"
-        invisible="state != 'draft'" class="btn-primary"/>
+        invisible="state != 'draft' or payment_state != 'paid'" class="btn-primary"/>
 
     <button name="action_process" string="Process" type="object"
         invisible="state != 'confirmed'" class="btn-primary"/>
@@ -36,7 +39,7 @@
         invisible="state != 'shipped'" class="btn-primary"/>
 
     <button name="action_cancel" string="Cancel" type="object"
-        invisible="state not in ('draft','confirmed')" class="btn-secondary"/>
+        invisible="state in ('cancelled','done','shipped')" class="btn-secondary"/>
 
     <field name="state" widget="statusbar"
         statusbar_visible="draft,confirmed,processing,shipped,done"/>

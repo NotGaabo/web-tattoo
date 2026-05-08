@@ -32,6 +32,7 @@
         # Views
         'views/customer_views.xml',
         'views/product_views.xml',
+        'views/contact_request_views.xml',
         'views/service_views.xml',
         'views/artist_views.xml',
         'views/gallery_views.xml',

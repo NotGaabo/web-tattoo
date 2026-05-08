@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiArrowRight, FiClock, FiDroplet } from 'react-icons/fi';
+import { FiArrowRight } from 'react-icons/fi';
 import { useUIStore } from '../context/store';
 import { serviceService } from '../services/api';
 import './Services.css';
+
+const GOLD = '#D4AA5A';
+const FONT = 'Inter, system-ui, sans-serif';
+const WHATSAPP_NUMBER = '18494606390';
 
 /**
  * Página de servicios de tatuaje
  */
 export default function Services() {
   const showNotification = useUIStore(state => state.showNotification);
-  const [selectedCategory, setSelectedCategory] = useState('small');
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,18 +24,8 @@ export default function Services() {
       try {
         setLoading(true);
         const response = await serviceService.getAll();
-        
-        // Manejar diferentes formatos de respuesta
         const servicesList = response?.data || response || [];
-        const formattedServices = Array.isArray(servicesList) 
-          ? servicesList.map(service => ({
-              ...service,
-              colors: service.colorsName ? [service.colorsName] : ['Negro'],
-              estimatedTime: service.estimatedTime || '1 hora'
-            }))
-          : [];
-        
-        setServices(formattedServices);
+        setServices(Array.isArray(servicesList) ? servicesList : []);
         setError(null);
       } catch (err) {
         console.error('Error loading services:', err);
@@ -46,112 +39,45 @@ export default function Services() {
     fetchServices();
   }, []);
 
-  const serviceTypes = [
-    {
-      type: 'new',
-      title: 'Tatuaje Nuevo',
-      description: 'Crea tu diseño ideal desde cero'
-    },
-    {
-      type: 'cover',
-      title: 'Cover',
-      description: 'Transforma un tatuaje anterior'
-    },
-    {
-      type: 'modification',
-      title: 'Modificación',
-      description: 'Personaliza un tatuaje existente'
-    },
-    {
-      type: 'touch',
-      title: 'Retoque',
-      description: 'Revitaliza tu tatuaje'
-    }
-  ];
-
   const handleSchedule = (service) => {
     showNotification(`Redirigiendo a WhatsApp para agendar "${service.name}"`, 'info');
-    // En producción, esto abriría WhatsApp con un mensaje preformulado
     window.open(
-      `https://wa.me/8097147813?text=Hola! Me gustaría agendar: ${service.name}`,
-      '_blank'
+      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola, me interesa el servicio "${service.name}" y quiero cotizarlo.`)}`,
+      '_blank',
+      'noopener,noreferrer'
     );
   };
 
-  // Filtrar servicios por categoría
-  const currentServices = services.filter(s => s.type === selectedCategory);
-
   return (
     <div className="services-page">
-      {/* Header */}
       <motion.div
         className="services-header"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="container">
-          <h1>Nuestros Servicios</h1>
-          <p>Diseños únicos adaptados a tu estilo y presupuesto</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: GOLD, marginBottom: 20, fontFamily: FONT }}>
+            <span style={{ display: 'block', width: 28, height: 1, background: GOLD }} />
+            Servicios
+          </div>
+          <h1 style={{ fontFamily: FONT, fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.025em', textTransform: 'none', color: '#fff', margin: '0 0 20px', maxWidth: '16ch' }}>
+            Servicios del estudio para cotizar contigo por WhatsApp.
+          </h1>
+          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.75, color: 'rgba(255,255,255,0.5)', fontFamily: FONT, maxWidth: 660 }}>
+            Aqui ves lo que ofrecemos de forma general. El precio y los detalles finales se definen cuando hablas con nosotros y agendas la cita.
+          </p>
         </div>
       </motion.div>
 
       <div className="container">
-        {/* Service Types */}
         <motion.section
           className="service-types-section"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2>Tipos de Servicio</h2>
-          <div className="service-types-grid">
-            {serviceTypes.map((service, index) => (
-              <motion.div
-                key={service.type}
-                className="service-type-card"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                whileHover={{ y: -5 }}
-              >
-                <div className="service-type-icon">✨</div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Categorías de tamaño */}
-        <motion.section
-          className="size-categories-section"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h2>Categorías por Tamaño</h2>
-          
-          {/* Botones de categoría */}
-          <div className="category-tabs">
-            {['small', 'medium', 'large'].map(category => (
-              <motion.button
-                key={category}
-                className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(category)}
-                whileTap={{ scale: 0.95 }}
-              >
-                {category === 'small' && '📍 Pequeño'}
-                {category === 'medium' && '📌 Mediano'}
-                {category === 'large' && '📍 Grande'}
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Grid de servicios */}
-          <motion.div
-            className="services-grid"
-            layout
-          >
+          <h2 style={{ fontFamily: FONT, fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.02em', textTransform: 'none', color: '#fff' }}>Servicios disponibles</h2>
+          <div className="service-types-grid service-types-grid-compact">
             {loading ? (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
                 <p>Cargando servicios...</p>
@@ -160,73 +86,51 @@ export default function Services() {
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
                 <p>{error}</p>
               </div>
-            ) : currentServices.length === 0 ? (
+            ) : !services.length ? (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px' }}>
-                <p>No hay servicios disponibles en esta categoría.</p>
+                <p>No hay servicios disponibles ahora mismo.</p>
               </div>
             ) : (
-              currentServices.map((service) => (
+              services.map((service, index) => (
                 <motion.div
                   key={service.id}
                   className="service-card"
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  whileHover={{ y: -8 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 * index }}
+                  whileHover={{ y: -3 }}
                 >
-                  {/* Header */}
                   <div className="service-card-header">
                     <h3>{service.name}</h3>
-                    <span className="service-price">${service.price}</span>
                   </div>
 
-                  {/* Descripción */}
-                  <p className="service-description">{service.description}</p>
-
-                  {/* Detalles */}
-                  <div className="service-details">
-                    <div className="detail-item">
-                      <FiClock size={18} />
-                      <span>{service.estimatedTime}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FiDroplet size={18} />
-                      <span>{service.colors.join(', ')}</span>
-                    </div>
-                  </div>
-
-                  {/* Botón */}
                   <motion.button
-                    className="btn btn-primary"
+                    className="btn btn-primary service-card-button"
                     onClick={() => handleSchedule(service)}
                     whileTap={{ scale: 0.95 }}
-                    style={{ width: '100%' }}
                   >
-                    Agendar <FiArrowRight />
+                    Consultar <FiArrowRight />
                   </motion.button>
                 </motion.div>
               ))
             )}
-          </motion.div>
+          </div>
         </motion.section>
 
-        {/* Process Section */}
         <motion.section
           className="process-section"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <h2>Nuestro Proceso</h2>
+          <h2 style={{ fontFamily: FONT, fontSize: 'clamp(28px, 3vw, 42px)', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.02em', textTransform: 'none', color: '#fff' }}>Como se trabaja</h2>
           <div className="process-steps">
             {[
-              { number: '1', title: 'Consulta', description: 'Habla con nuestro artista sobre tu idea' },
-              { number: '2', title: 'Diseño', description: 'Creamos un diseño personalizado para ti' },
-              { number: '3', title: 'Preparación', description: 'Preparamos el área y discutimos detalles' },
-              { number: '4', title: 'Tatuaje', description: 'Realizamos el tatuaje con máxima precisión' },
-              { number: '5', title: 'Cuidado', description: 'Te proporcionamos instrucciones de cuidado' }
+              { number: '1', title: 'Consulta', description: 'Nos cuentas tu idea y el servicio que te interesa.' },
+              { number: '2', title: 'Cotizacion', description: 'Definimos alcance, precio y fecha por WhatsApp.' },
+              { number: '3', title: 'Cita', description: 'Reservas con el tatuador y el dia que mejor te funcione.' },
+              { number: '4', title: 'Sesion', description: 'Realizamos el trabajo con los detalles ya acordados.' },
+              { number: '5', title: 'Seguimiento', description: 'Te dejamos recomendaciones y soporte posterior.' }
             ].map((step, index) => (
               <motion.div
                 key={step.number}

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from urllib.parse import quote
 from datetime import datetime, timedelta, time, timezone
 from odoo import http
 from odoo.http import request
@@ -8,6 +9,7 @@ from werkzeug.wrappers import Response
 
 
 class TattooAppointmentController(http.Controller):
+    _whatsapp_number = '18494606390'
     _cors_headers = [
         ('Content-Type', 'application/json'),
         ('Access-Control-Allow-Origin', '*'),
@@ -42,9 +44,7 @@ class TattooAppointmentController(http.Controller):
         partner = user.partner_id.sudo()
         customer_email = (partner.email or user.login or '').strip().lower()
 
-        domain = [('user_id', '=', user.id)]
-        if customer_email:
-            domain = ['|', ('user_id', '=', user.id), ('email', '=', customer_email)]
+        domain = [('email', '=', customer_email or user.login)]
 
         customer = Customer.search(domain, limit=1)
         if customer:
@@ -52,7 +52,6 @@ class TattooAppointmentController(http.Controller):
                 'name': (partner.name or user.name or customer.name or '').strip() or customer.name,
                 'email': customer_email or customer.email,
                 'phone': (partner.phone or '').strip() or customer.phone,
-                'user_id': user.id,
             }
             customer.write(updates)
             return customer
@@ -61,7 +60,6 @@ class TattooAppointmentController(http.Controller):
             'name': (partner.name or user.name or user.login or '').strip() or user.login,
             'email': customer_email or user.login,
             'phone': (partner.phone or '').strip(),
-            'user_id': user.id,
         })
 
     def _serialize_appointment(self, appointment):
@@ -85,7 +83,32 @@ class TattooAppointmentController(http.Controller):
             'allergies': appointment.allergies or '',
             'medications': appointment.medications or '',
             'previous_tattoos': appointment.previous_tattoos,
+            'whatsapp_message': appointment.whatsapp_message or '',
+            'whatsapp_number': appointment.whatsapp_number or self._whatsapp_number,
+            'whatsapp_url': self._build_whatsapp_url(appointment.whatsapp_message or ''),
         }
+
+    def _build_whatsapp_message(self, customer, artist, service, appointment_dt, data):
+        local_dt = appointment_dt
+        date_label = local_dt.strftime('%d/%m/%Y')
+        details = [
+            'Hola, quiero reservar una cita de tatuaje.',
+            '',
+            f'Cliente: {customer.name}',
+            f'Tatuador: {artist.name}',
+            f'Servicio: {service.name}',
+            f'Fecha: {date_label}',
+        ]
+        if data.get('size_area') or data.get('body_area'):
+            details.append(f'Zona / tamano: {(data.get("size_area") or data.get("body_area") or "").strip()}')
+        if data.get('design_description'):
+            details.extend(['', 'Descripcion breve:', data.get('design_description').strip()])
+        if data.get('notes'):
+            details.extend(['', 'Notas:', data.get('notes').strip()])
+        return '\n'.join(details)
+
+    def _build_whatsapp_url(self, message):
+        return f'https://wa.me/{self._whatsapp_number}?text={quote(message or "")}'
 
     def _get_available_slots(self, artist_id, date_str):
         """Calculate available time slots for an artist on a specific date"""
@@ -184,7 +207,7 @@ class TattooAppointmentController(http.Controller):
         except json.JSONDecodeError:
             return self._response({'success': False, 'message': 'Invalid JSON'}, status=400)
 
-        required_fields = ['artist_id', 'service_id', 'appointment_datetime']
+        required_fields = ['artist_id', 'service_id']
         for field in required_fields:
             if field not in data:
                 return self._response({'success': False, 'message': f'Missing {field}'}, status=400)
@@ -199,29 +222,24 @@ class TattooAppointmentController(http.Controller):
         if not artist.exists() or not service.exists():
             return self._response({'success': False, 'message': 'Invalid artist or service'}, status=400)
 
-        # Validate datetime
+        appointment_date = (data.get('appointment_date') or '').strip()
+        if not appointment_date:
+            raw_datetime = (data.get('appointment_datetime') or '').strip()
+            if raw_datetime:
+                appointment_date = raw_datetime.split('T')[0]
+
+        if not appointment_date:
+            return self._response({'success': False, 'message': 'Missing appointment_date'}, status=400)
+
         try:
-            appt_datetime = datetime.fromisoformat(data['appointment_datetime'].replace('Z', '+00:00'))
-            if appt_datetime.tzinfo is not None:
-                appt_datetime = appt_datetime.astimezone(timezone.utc).replace(tzinfo=None)
+            parsed_date = datetime.strptime(appointment_date, '%Y-%m-%d').date()
         except ValueError:
-            return self._response({'success': False, 'message': 'Invalid datetime format'}, status=400)
+            return self._response({'success': False, 'message': 'Invalid appointment date'}, status=400)
+
+        appt_datetime = datetime.combine(parsed_date, time(hour=12, minute=0))
 
         if appt_datetime <= datetime.utcnow():
             return self._response({'success': False, 'message': 'Appointment must be in the future'}, status=400)
-
-        # Check availability
-        date_str = appt_datetime.date().isoformat()
-        slots = self._get_available_slots(data['artist_id'], date_str)
-        slot_start = appt_datetime
-        slot_end = slot_start + timedelta(hours=service.estimated_time_hours)
-
-        available = any(
-            datetime.fromisoformat(slot['start']) <= slot_start and datetime.fromisoformat(slot['end']) >= slot_end
-            for slot in slots
-        )
-        if not available:
-            return self._response({'success': False, 'message': 'Time slot not available'}, status=400)
 
         # Create appointment
         appointment = request.env['tattoo.appointment'].sudo().create({
@@ -236,11 +254,20 @@ class TattooAppointmentController(http.Controller):
             'allergies': data.get('allergies') or data.get('medical_info') or '',
             'medications': data.get('medications') or '',
             'previous_tattoos': bool(data.get('previous_tattoos', False)),
+            'customer_notes': data.get('notes') or '',
+            'state': 'pending',
+        })
+
+        whatsapp_message = self._build_whatsapp_message(customer, artist, service, appt_datetime, data)
+        appointment.write({
+            'whatsapp_message': whatsapp_message,
+            'whatsapp_number': self._whatsapp_number,
         })
 
         return self._response({
             'success': True,
             'data': self._serialize_appointment(appointment),
+            'whatsapp_url': self._build_whatsapp_url(whatsapp_message),
         }, status=201)
 
     @http.route('/api/artists/<int:artist_id>/availability', type='http', auth='public', methods=['GET', 'OPTIONS'], csrf=False)

@@ -29,6 +29,23 @@
   margin-bottom: 4rem;
 }
 
+.contact-container--single {
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.contact-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 999px;
+  color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+}
+
 /* Contact Info Section */
 .contact-info-section h2 {
   margin-bottom: 2rem;

@@ -4,7 +4,7 @@ from odoo import models, fields, api
 
 class TattooService(models.Model):
     """
-    Modelo para servicios de tatuaje (pequeño, mediano, grande)
+    Modelo para servicios generales del estudio
     """
     _name = 'tattoo.service'
     _description = 'Tattoo Service'
@@ -12,30 +12,13 @@ class TattooService(models.Model):
 
     # Información básica
     name = fields.Char(string='Service Name', required=True)
-    service_type = fields.Selection([
-        ('small', 'Small (0-5cm²)'),
-        ('medium', 'Medium (5-20cm²)'),
-        ('large', 'Large (20cm²+)')
-    ], string='Service Type', required=True)
     
     # Descripción
     description = fields.Text(string='Description')
     
-    # Precios y tiempo
-    base_price = fields.Float(string='Base Price', required=True)
-    estimated_time_hours = fields.Float(string='Estimated Time (hours)')
-    
-    # Colores disponibles
-    available_colors = fields.Selection([
-        ('black', 'Black & Gray'),
-        ('color', 'Full Color'),
-        ('all', 'All Colors')
-    ], string='Available Colors', default='black')
-    
     # Relaciones
     appointment_ids = fields.One2many('tattoo.appointment', 'service_id', string='Appointments')
     review_ids = fields.One2many('tattoo.review', 'service_id', string='Reviews')
-    artist_ids = fields.Many2many('tattoo.artist', 'tattoo_service_artist_rel', 'service_id', 'artist_id', string='Available Artists')
     
     # Estadísticas
     total_appointments = fields.Integer(string='Total Appointments', compute='_compute_total_appointments', store=True)
@@ -62,10 +45,6 @@ class TattooService(models.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'type': self.service_type,
-            'price': self.base_price,
-            'estimatedTime': f'{int(self.estimated_time_hours * 60)} min',
-            'colors': self.available_colors,
             'description': self.description or '',
-            'artists': [artist.id for artist in self.artist_ids]
+            'active': self.active,
         }

@@ -1,4 +1,4 @@
-import { appointmentService, tattooArtistService } from './api';
+import { appointmentService, galleryService, resolveBackendUrl, tattooArtistService } from './api';
 
 const TONES = [
   'from-[#d8b46a] via-[#8b6b35] to-[#1a1a1a]',
@@ -22,7 +22,7 @@ const FALLBACK_ARTISTS = [
     name: '@carlos.ink',
     legalName: 'Carlos Martinez',
     specialization: 'Realismo black and grey',
-    years_of_experience: 12,
+    tattooing_since: '2014-01-01',
     biography: 'Retratos, sombreado suave y piezas de alto detalle para sesiones premium.',
     rating: 4.9,
     reviewCount: 145,
@@ -36,7 +36,7 @@ const FALLBACK_ARTISTS = [
     name: '@luna.ink',
     legalName: 'Luna Gonzalez',
     specialization: 'Fine line y minimal',
-    years_of_experience: 8,
+    tattooing_since: '2018-01-01',
     biography: 'Lineas finas, micro tattoos y composiciones delicadas con acabado limpio.',
     rating: 4.8,
     reviewCount: 98,
@@ -50,7 +50,7 @@ const FALLBACK_ARTISTS = [
     name: '@david.flash',
     legalName: 'David Silva',
     specialization: 'Traditional y neo traditional',
-    years_of_experience: 10,
+    tattooing_since: '2016-01-01',
     biography: 'Flash curado, color controlado y tatuajes con lectura fuerte desde lejos.',
     rating: 4.7,
     reviewCount: 112,
@@ -64,7 +64,7 @@ const FALLBACK_ARTISTS = [
     name: '@sofia.gold',
     legalName: 'Sofia Ruiz',
     specialization: 'Cover ups y piezas artisticas',
-    years_of_experience: 9,
+    tattooing_since: '2017-01-01',
     biography: 'Cover ups pensados, composiciones fluidas y sesiones con enfoque editorial.',
     rating: 4.9,
     reviewCount: 156,
@@ -143,6 +143,18 @@ function parseExperience(value) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
+function computeExperienceFromDate(startDateValue) {
+  const parsed = new Date(String(startDateValue || ''));
+  const currentYear = new Date().getFullYear();
+
+  if (Number.isNaN(parsed.getTime())) {
+    return 0;
+  }
+
+  const year = parsed.getUTCFullYear();
+  return year > 0 && year <= currentYear ? currentYear - year : 0;
+}
+
 function buildPortfolioPlaceholders(artist, index) {
   return Array.from({ length: 3 }, (_, offset) => ({
     id: `${artist.id}-fallback-${offset}`,
@@ -160,7 +172,7 @@ function normalizePortfolio(portfolio, artist, index) {
 
   return portfolio.slice(0, 6).map((item, offset) => ({
     id: `${artist.id}-portfolio-${offset}`,
-    title: `${artist.displayName} Piece ${offset + 1}`,
+    title: (typeof item === 'object' && (item?.title || item?.name)) || `${artist.displayName} Piece ${offset + 1}`,
     badge: artist.skills[offset] || artist.specialization,
     imageUrl: typeof item === 'string' ? item : item?.imageUrl || item?.url || '',
     tone: TONES[(index + offset) % TONES.length],
@@ -170,16 +182,27 @@ function normalizePortfolio(portfolio, artist, index) {
 function normalizeArtistRecord(record, index) {
   const extractedHandle = extractHandle(record.name || '');
   const handle = normalizeHandle(
-    record.instagramHandle || record.instagram || extractedHandle || buildHandleFromName(record.legalName || record.name, index),
+    record.social_handle || record.instagramHandle || record.instagram || extractedHandle || buildHandleFromName(record.legalName || record.name, index),
   );
   const hasHandleName = Boolean(extractedHandle);
   const displayName = hasHandleName ? handleToArtistName(handle) : record.name || handleToArtistName(handle);
-  const experienceYears = parseExperience(record.years_of_experience || record.experience);
+  const experienceYears = computeExperienceFromDate(record.tattooing_since)
+    || parseExperience(record.years_of_experience || record.experience);
   const specialization = record.specialization || record.specialty || 'Custom tattoo';
   const skills = Array.isArray(record.skills) && record.skills.length
     ? record.skills
     : specialization.split(/,| y | and /i).map((skill) => skill.trim()).filter(Boolean);
   const biography = stripHtml(record.biography || record.description || '');
+  const galleryPieces = Array.isArray(record.gallery) ? record.gallery : [];
+  const sourcePortfolio = Array.isArray(record.portfolio) && record.portfolio.length
+    ? record.portfolio
+    : galleryPieces.map((piece) => ({
+        id: piece.id,
+        title: piece.name,
+        url: piece.url || piece.image,
+        type: piece.type,
+        description: piece.description,
+      }));
   const artist = {
     id: record.id || index + 1,
     displayName: displayName || record.legalName || 'Guest Artist',
@@ -189,35 +212,40 @@ function normalizeArtistRecord(record, index) {
     biography: biography || 'Custom sessions, detalle fino y direccion visual premium para cada pieza.',
     experienceYears,
     experienceLabel: experienceYears ? `${experienceYears} anos` : 'Agenda premium',
-    rating: Number(record.rating || record.average_rating || 4.8),
-    reviewCount: Number(record.reviewCount || record.total_reviews || 84),
-    completedAppointments: Number(record.total_completed_appointments || 96),
-    location: record.location || 'Studio Floor',
+    tattooingSince: record.tattooing_since || '',
+    rating: Number(record.rating || record.average_rating || 0),
+    reviewCount: Number(record.reviewCount || record.total_reviews || 0),
+    completedAppointments: Number(record.total_completed_appointments || 0),
     skills: skills.slice(0, 4),
     socialUrl: handle ? `https://www.instagram.com/${handle.replace('@', '')}/` : STUDIO_PROFILE.instagramUrl,
-    avatarUrl: record.avatarUrl || '/skin-art-symbol.svg',
+    avatarUrl: record.avatarUrl || record.image || '/skin-art-symbol.svg',
     tone: TONES[index % TONES.length],
   };
 
-  artist.portfolio = normalizePortfolio(record.portfolio, artist, index);
+  artist.portfolio = normalizePortfolio(sourcePortfolio, artist, index);
   return artist;
 }
 
-function buildGallery(artists) {
-  const items = artists.flatMap((artist) =>
-    artist.portfolio.slice(0, 3).map((piece, index) => ({
-      id: `${artist.id}-gallery-${index}`,
-      artistId: artist.id,
-      artistName: artist.displayName,
-      artistHandle: artist.handle,
-      style: piece.badge,
-      title: piece.title,
-      imageUrl: piece.imageUrl,
-      tone: piece.tone,
-    })),
-  );
+function normalizeGalleryRecord(record, artistsById, index) {
+  const artist = artistsById.get(record.artist_id);
+  const artistName = artist?.displayName || record.artist_name || 'Guest Artist';
+  const artistHandle = artist?.handle || buildHandleFromName(record.artist_name || artistName, index);
+  const pieceTitle = record.name || `Pieza de ${artistName}`;
+  const description = stripHtml(record.description || '');
 
-  return items.slice(0, 9);
+  return {
+    id: record.id || `gallery-${index}`,
+    artistId: record.artist_id || artist?.id || '',
+    artistName,
+    artistHandle,
+    style: record.tattoo_type_label || record.tattoo_type || 'Custom',
+    pieceTitle,
+    title: pieceTitle,
+    description,
+    workDate: record.work_date || '',
+    imageUrl: resolveBackendUrl(record.image || record.image_url || ''),
+    tone: TONES[index % TONES.length],
+  };
 }
 
 function buildHighlights(artists) {
@@ -306,7 +334,7 @@ function buildFallbackData() {
   return {
     studio: STUDIO_PROFILE,
     artists,
-    gallery: buildGallery(artists),
+    gallery: [],
     highlights: buildHighlights(artists),
     appointmentSlots: buildAppointmentSlots(artists),
     lastSync: new Date().toISOString(),
@@ -329,6 +357,26 @@ async function fetchArtistsFromApi() {
     return artistsList.map((artist, index) => normalizeArtistRecord(artist, index));
   } catch (error) {
     console.error('Error fetching artists from API:', error);
+    return [];
+  }
+}
+
+async function fetchGalleryFromApi(artists) {
+  try {
+    const response = await galleryService.getAll();
+    const galleryList = response?.data || response || [];
+
+    if (!Array.isArray(galleryList) || !galleryList.length) {
+      return [];
+    }
+
+    const artistsById = new Map(artists.map((artist) => [artist.id, artist]));
+    return galleryList
+      .filter((piece) => piece && piece.active !== false)
+      .map((piece, index) => normalizeGalleryRecord(piece, artistsById, index))
+      .slice(0, 9);
+  } catch (error) {
+    console.error('Error fetching gallery from API:', error);
     return [];
   }
 }
@@ -364,11 +412,12 @@ export async function loadStudioMcpData() {
     }
 
     const availabilityMap = await fetchAvailability(artists);
+    const gallery = await fetchGalleryFromApi(artists);
 
     return {
       studio: STUDIO_PROFILE,
       artists,
-      gallery: buildGallery(artists),
+      gallery,
       highlights: buildHighlights(artists),
       appointmentSlots: buildAppointmentSlots(artists, availabilityMap),
       lastSync: new Date().toISOString(),

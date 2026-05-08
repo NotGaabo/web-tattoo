@@ -13,12 +13,14 @@ class TattooProductController(TattooApiControllerMixin, http.Controller):
             'name': product.name,
             'code': product.code or '',
             'brand': product.brand or '',
+            'brand_id': product.brand_id.id or False,
             'price': product.list_price,
             'cost_price': product.cost_price or product.standard_price or 0.0,
             'description': product.description_sale or '',
             'active': product.active,
             'quantity_available': product.quantity_available or 0.0,
             'quantity_reserved': product.quantity_reserved or 0.0,
+            'quantity_sellable': max((product.quantity_available or 0.0) - (product.quantity_reserved or 0.0), 0.0),
             'average_rating': product.average_rating or 0.0,
             'total_reviews': product.total_reviews or 0,
             'total_sales': product.total_sales or 0.0,
@@ -59,13 +61,20 @@ class TattooProductController(TattooApiControllerMixin, http.Controller):
             'list_price': float(price),
             'description_sale': description,
             'code': (data.get('code') or '').strip(),
-            'brand': (data.get('brand') or '').strip(),
             'standard_price': float(data.get('cost_price') or 0),
             'active': bool(data.get('active', True)),
         })
 
+        brand_id = self._safe_int(data.get('brand_id'))
+        if brand_id:
+            product.sudo().write({'brand_id': brand_id})
+        elif 'brand' in data:
+            product.sudo().write({'brand': (data.get('brand') or '').strip()})
+
         if data.get('image'):
             product.sudo().write({'image_1920': data.get('image')})
+        if 'quantity_available' in data:
+            product.sudo().write({'quantity_available': float(data.get('quantity_available') or 0)})
 
         return self._response({
             'success': True,
@@ -111,6 +120,8 @@ class TattooProductController(TattooApiControllerMixin, http.Controller):
                 values['code'] = (data.get('code') or '').strip()
             if 'brand' in data:
                 values['brand'] = (data.get('brand') or '').strip()
+            if 'brand_id' in data:
+                values['brand_id'] = self._safe_int(data.get('brand_id')) or False
             if 'price' in data:
                 values['list_price'] = float(data.get('price') or 0)
             if 'cost_price' in data:
@@ -122,13 +133,19 @@ class TattooProductController(TattooApiControllerMixin, http.Controller):
             if 'image' in data:
                 values['image_1920'] = data.get('image') or False
 
-            if not values:
+            quantity_to_update = None
+            if 'quantity_available' in data:
+                quantity_to_update = float(data.get('quantity_available') or 0)
+
+            if not values and quantity_to_update is None:
                 return self._response({
                     'success': False,
                     'message': 'no fields to update',
                 }, status=400)
 
             product.write(values)
+            if quantity_to_update is not None:
+                product.write({'quantity_available': quantity_to_update})
             return self._response({
                 'success': True,
                 'message': 'product updated',

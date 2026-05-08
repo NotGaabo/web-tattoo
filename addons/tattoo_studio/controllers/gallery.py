@@ -1,12 +1,24 @@
 # -*- coding: utf-8 -*-
 
+import base64
+
 from odoo import http
 from odoo.http import request
+from werkzeug.wrappers import Response
 
 from .api_utils import TattooApiControllerMixin
 
 
 class TattooGalleryController(TattooApiControllerMixin, http.Controller):
+    def _image_content_type(self, image):
+        if image.startswith(b'\xff\xd8\xff'):
+            return 'image/jpeg'
+        if image.startswith(b'\x89PNG\r\n\x1a\n'):
+            return 'image/png'
+        if image.startswith(b'RIFF') and image[8:12] == b'WEBP':
+            return 'image/webp'
+        return 'application/octet-stream'
+
     def _tattoo_type_label(self, tattoo_type):
         selection = dict(request.env['tattoo.artist.gallery']._fields['tattoo_type'].selection)
         return selection.get(tattoo_type, '')
@@ -23,7 +35,7 @@ class TattooGalleryController(TattooApiControllerMixin, http.Controller):
             'work_date': gallery.work_date.isoformat() if gallery.work_date else '',
             'sequence': gallery.sequence,
             'active': gallery.active,
-            'image': f'/web/image/tattoo.artist.gallery/{gallery.id}/image' if gallery.image else '',
+            'image': f'/api/gallery/{gallery.id}/image' if gallery.image else '',
         }
 
     def _build_domain(self, artist_id=None, tattoo_type=None):
@@ -181,6 +193,21 @@ class TattooGalleryController(TattooApiControllerMixin, http.Controller):
             'deleted_id': gallery_id,
             'deleted_by': user.id,
         })
+
+    @http.route('/api/gallery/<int:gallery_id>/image', type='http', auth='public', methods=['GET', 'OPTIONS'], csrf=False)
+    def gallery_image(self, gallery_id, **kwargs):
+        if request.httprequest.method == 'OPTIONS':
+            return self._preflight()
+
+        gallery = request.env['tattoo.artist.gallery'].sudo().browse(gallery_id)
+        if not gallery.exists() or not gallery.active or not gallery.image:
+            return Response(status=404)
+
+        image = base64.b64decode(gallery.image)
+        response = Response(image, status=200, content_type=self._image_content_type(image))
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Cache-Control'] = 'public, max-age=86400'
+        return response
 
     @http.route('/api/artists/<int:artist_id>/gallery', type='http', auth='public', methods=['GET', 'OPTIONS'], csrf=False)
     def artist_gallery(self, artist_id, **kwargs):

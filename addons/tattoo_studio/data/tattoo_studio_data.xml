@@ -1,106 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
-        <!-- Skills -->
-        <record id="skill_realism" model="tattoo.skill">
-            <field name="name">Realism</field>
-            <field name="description">Realistic and detailed tattoo designs</field>
+        <!-- Product Brands -->
+        <record id="product_brand_hustle_butter" model="tattoo.product.brand">
+            <field name="name">Hustle Butter</field>
         </record>
 
-        <record id="skill_minimalism" model="tattoo.skill">
-            <field name="name">Minimalism</field>
-            <field name="description">Simple, elegant minimalist designs</field>
+        <record id="product_brand_tattoo_med" model="tattoo.product.brand">
+            <field name="name">TattooMed</field>
         </record>
 
-        <record id="skill_traditional" model="tattoo.skill">
-            <field name="name">Traditional</field>
-            <field name="description">Classic traditional tattoo style</field>
+        <record id="product_brand_pegasus" model="tattoo.product.brand">
+            <field name="name">Pegasus</field>
         </record>
 
-        <record id="skill_watercolor" model="tattoo.skill">
-            <field name="name">Watercolor</field>
-            <field name="description">Watercolor and artistic designs</field>
-        </record>
-
-        <record id="skill_biomechanical" model="tattoo.skill">
-            <field name="name">Biomechanical</field>
-            <field name="description">Biomechanical and sci-fi designs</field>
-        </record>
-
-        <!-- Services -->
-        <record id="service_small" model="tattoo.service">
-            <field name="name">Small Tattoo</field>
-            <field name="service_type">small</field>
-            <field name="base_price">80</field>
-            <field name="estimated_time_hours">0.75</field>
-            <field name="available_colors">black</field>
-            <field name="description">Small tattoos (up to 5cm²). Perfect for first tattoos or simple designs.</field>
-        </record>
-
-        <record id="service_medium" model="tattoo.service">
-            <field name="name">Medium Tattoo</field>
-            <field name="service_type">medium</field>
-            <field name="base_price">150</field>
-            <field name="estimated_time_hours">2</field>
-            <field name="available_colors">all</field>
-            <field name="description">Medium tattoos (5-20cm²). Great variety of designs and styles.</field>
-        </record>
-
-        <record id="service_large" model="tattoo.service">
-            <field name="name">Large Tattoo</field>
-            <field name="service_type">large</field>
-            <field name="base_price">300</field>
-            <field name="estimated_time_hours">4</field>
-            <field name="available_colors">all</field>
-            <field name="description">Large tattoos with lots of detail. May require multiple sessions.</field>
-        </record>
-
-        <!-- Products -->
-        <record id="tmpl_product_aftercare_cream" model="product.template">
-            <field name="name">Premium Aftercare Cream</field>
-            <field name="code">PROD-001</field>
-            <field name="brand">TattooLux</field>
-            <field name="list_price">24.99</field>
-            <field name="standard_price">8.00</field>
-            <field name="description">Premium aftercare cream for tattoo healing. Deep hydration and protection.</field>
-            <field name="weight">50</field>
-        </record>
-
-        <record id="tmpl_product_protective_balm" model="product.template">
-            <field name="name">Protective Balm</field>
-            <field name="code">PROD-002</field>
-            <field name="brand">SkinShield</field>
-            <field name="list_price">19.99</field>
-            <field name="standard_price">6.00</field>
-            <field name="description">Protective balm with natural ingredients for optimal scarring.</field>
-            <field name="weight">30</field>
-        </record>
-
-        <record id="tmpl_product_healing_lotion" model="product.template">
-            <field name="name">Healing Lotion</field>
-            <field name="code">PROD-003</field>
-            <field name="brand">InkCare</field>
-            <field name="list_price">21.99</field>
-            <field name="standard_price">7.00</field>
-            <field name="description">Healing lotion specially formulated for fresh tattoos.</field>
-            <field name="weight">60</field>
-        </record>
-
-        <!-- Customers -->
-        <record id="customer_john_doe" model="tattoo.customer">
-            <field name="name">John Doe</field>
-            <field name="email">john.doe@example.com</field>
-            <field name="phone">+34 666 000 001</field>
-            <field name="city">Madrid</field>
-            <field name="customer_since" eval="datetime.today().date()"/>
-        </record>
-
-        <record id="customer_jane_smith" model="tattoo.customer">
-            <field name="name">Jane Smith</field>
-            <field name="email">jane.smith@example.com</field>
-            <field name="phone">+34 666 000 002</field>
-            <field name="city">Barcelona</field>
-            <field name="customer_since" eval="datetime.today().date()"/>
+        <record id="product_brand_radiant" model="tattoo.product.brand">
+            <field name="name">Radiant Colors</field>
         </record>
 
         <!-- Artists -->
@@ -108,205 +23,36 @@
             <field name="name">Carlos Martínez</field>
             <field name="email">carlos@tattoostudio.com</field>
             <field name="phone">+34 666 111 111</field>
+            <field name="social_handle">@carlos.ink</field>
             <field name="specialization">Realism in Black and White</field>
-            <field name="years_of_experience">12</field>
             <field name="biography">Expert in realistic tattoos with incredible details. My passion is creating works of art on skin.</field>
-            <field name="skill_ids" eval="[(4, ref('skill_realism'))]"/>
-            <field name="service_ids" eval="[(4, ref('service_small')), (4, ref('service_medium')), (4, ref('service_large'))]"/>
         </record>
 
         <record id="artist_memo" model="tattoo.artist">
             <field name="name">Memo</field>
             <field name="email">memo@tattoostudio.com</field>
             <field name="phone">+34 666 111 101</field>
+            <field name="social_handle">@memo.tattoo</field>
             <field name="specialization">Realism &amp; Watercolor</field>
-            <field name="years_of_experience">8</field>
             <field name="biography">Experienced tattoo artist specializing in realistic portraits and watercolor designs.</field>
-            <field name="is_available">True</field>
-            <field name="skill_ids" eval="[(6, 0, [ref('skill_realism'), ref('skill_watercolor')])]"/>
-            <field name="service_ids" eval="[(6, 0, [ref('service_small'), ref('service_medium'), ref('service_large')])]"/>
         </record>
 
         <record id="artist_willito" model="tattoo.artist">
             <field name="name">Willito</field>
             <field name="email">willito@tattoostudio.com</field>
             <field name="phone">+34 666 111 102</field>
+            <field name="social_handle">@willito.fine</field>
             <field name="specialization">Minimalist &amp; Fine Line</field>
-            <field name="years_of_experience">6</field>
             <field name="biography">Specialist in minimalist tattoos and fine line designs with impeccable precision.</field>
-            <field name="is_available">True</field>
-            <field name="skill_ids" eval="[(6, 0, [ref('skill_minimalism')])]"/>
-            <field name="service_ids" eval="[(6, 0, [ref('service_small'), ref('service_medium'), ref('service_large')])]"/>
         </record>
 
         <record id="artist_ivan" model="tattoo.artist">
             <field name="name">Ivan</field>
             <field name="email">ivan@tattoostudio.com</field>
             <field name="phone">+34 666 111 103</field>
+            <field name="social_handle">@ivan.blackwork</field>
             <field name="specialization">Traditional &amp; Biomechanical</field>
-            <field name="years_of_experience">10</field>
             <field name="biography">Master of traditional tattoos and biomechanical designs with vibrant colors.</field>
-            <field name="is_available">True</field>
-            <field name="skill_ids" eval="[(6, 0, [ref('skill_traditional'), ref('skill_biomechanical')])]"/>
-            <field name="service_ids" eval="[(6, 0, [ref('service_small'), ref('service_medium'), ref('service_large')])]"/>
-        </record>
-
-        <!-- Artist Availability -->
-        <record id="availability_memo_mon" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="day_of_week">0</field>
-            <field name="start_time">9.0</field>
-            <field name="end_time">17.0</field>
-        </record>
-
-        <record id="availability_memo_tue" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="day_of_week">1</field>
-            <field name="start_time">9.0</field>
-            <field name="end_time">17.0</field>
-        </record>
-
-        <record id="availability_memo_wed" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="day_of_week">2</field>
-            <field name="start_time">9.0</field>
-            <field name="end_time">17.0</field>
-        </record>
-
-        <record id="availability_memo_thu" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="day_of_week">3</field>
-            <field name="start_time">9.0</field>
-            <field name="end_time">17.0</field>
-        </record>
-
-        <record id="availability_memo_fri" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="day_of_week">4</field>
-            <field name="start_time">9.0</field>
-            <field name="end_time">17.0</field>
-        </record>
-
-        <record id="availability_willito_mon" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="day_of_week">0</field>
-            <field name="start_time">10.0</field>
-            <field name="end_time">18.0</field>
-        </record>
-
-        <record id="availability_willito_tue" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="day_of_week">1</field>
-            <field name="start_time">10.0</field>
-            <field name="end_time">18.0</field>
-        </record>
-
-        <record id="availability_willito_wed" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="day_of_week">2</field>
-            <field name="start_time">10.0</field>
-            <field name="end_time">18.0</field>
-        </record>
-
-        <record id="availability_willito_thu" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="day_of_week">3</field>
-            <field name="start_time">10.0</field>
-            <field name="end_time">18.0</field>
-        </record>
-
-        <record id="availability_willito_fri" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="day_of_week">4</field>
-            <field name="start_time">10.0</field>
-            <field name="end_time">18.0</field>
-        </record>
-
-        <record id="availability_ivan_mon" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="day_of_week">0</field>
-            <field name="start_time">11.0</field>
-            <field name="end_time">19.0</field>
-        </record>
-
-        <record id="availability_ivan_tue" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="day_of_week">1</field>
-            <field name="start_time">11.0</field>
-            <field name="end_time">19.0</field>
-        </record>
-
-        <record id="availability_ivan_wed" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="day_of_week">2</field>
-            <field name="start_time">11.0</field>
-            <field name="end_time">19.0</field>
-        </record>
-
-        <record id="availability_ivan_thu" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="day_of_week">3</field>
-            <field name="start_time">11.0</field>
-            <field name="end_time">19.0</field>
-        </record>
-
-        <record id="availability_ivan_fri" model="tattoo.artist.availability">
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="day_of_week">4</field>
-            <field name="start_time">11.0</field>
-            <field name="end_time">19.0</field>
-        </record>
-
-        <!-- Example Exception -->
-        <record id="exception_closed_2024_04_24" model="tattoo.exception">
-            <field name="date">2024-04-24</field>
-            <field name="reason">Vacaciones - Estudio cerrado</field>
-            <field name="is_closed">True</field>
-        </record>
-
-        <!-- Gallery - Memo -->
-        <record id="gallery_memo_1" model="tattoo.artist.gallery">
-            <field name="name">Watercolor Phoenix</field>
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="tattoo_type">watercolor</field>
-            <field name="description">Beautiful watercolor phoenix tattoo with realistic details</field>
-        </record>
-
-        <record id="gallery_memo_2" model="tattoo.artist.gallery">
-            <field name="name">Realistic Portrait</field>
-            <field name="artist_id" ref="artist_memo"/>
-            <field name="tattoo_type">realism</field>
-            <field name="description">Detailed realistic portrait tattoo in black and gray</field>
-        </record>
-
-        <!-- Gallery - Willito -->
-        <record id="gallery_willito_1" model="tattoo.artist.gallery">
-            <field name="name">Minimalist Geometric</field>
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="tattoo_type">geometric</field>
-            <field name="description">Simple yet elegant geometric minimalist tattoo</field>
-        </record>
-
-        <record id="gallery_willito_2" model="tattoo.artist.gallery">
-            <field name="name">Fine Line Moon</field>
-            <field name="artist_id" ref="artist_willito"/>
-            <field name="tattoo_type">minimalism</field>
-            <field name="description">Delicate fine line moon tattoo with minimalist aesthetic</field>
-        </record>
-
-        <!-- Gallery - Ivan -->
-        <record id="gallery_ivan_1" model="tattoo.artist.gallery">
-            <field name="name">Traditional Dragon</field>
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="tattoo_type">traditional</field>
-            <field name="description">Classic traditional dragon tattoo with vibrant colors</field>
-        </record>
-
-        <record id="gallery_ivan_2" model="tattoo.artist.gallery">
-            <field name="name">Biomechanical Arm</field>
-            <field name="artist_id" ref="artist_ivan"/>
-            <field name="tattoo_type">geometric</field>
-            <field name="description">Impressive biomechanical sleeve design with intricate details</field>
         </record>
     </data>
 </odoo>

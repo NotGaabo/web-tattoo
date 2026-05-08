@@ -317,6 +317,10 @@
   display: none;
 }
 
+.gestion-brand-panel-simple .gestion-form {
+  margin-top: 0;
+}
+
 .gestion-form-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -363,6 +367,32 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.85rem;
+}
+
+.gestion-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.gestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(212, 170, 90, 0.18);
+  background: rgba(212, 170, 90, 0.08);
+  color: var(--accent-gold);
+  border-radius: 999px;
+  padding: 0.45rem 0.65rem 0.45rem 0.9rem;
+}
+
+.gestion-chip button {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-light);
 }
 
 .gestion-image-preview {
@@ -459,6 +489,106 @@
 .gestion-row-actions button:hover {
   border-color: rgba(212, 170, 90, 0.3);
   color: var(--accent-gold);
+}
+
+.gestion-inline-button {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  padding: 0.55rem 0.9rem !important;
+  border-radius: 999px !important;
+}
+
+.gestion-row-selected {
+  background: rgba(212, 170, 90, 0.06);
+}
+
+.gestion-order-screen {
+  display: grid;
+  gap: 1rem;
+}
+
+.gestion-order-screen__top {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.gestion-order-detail {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(239, 226, 207, 0.08);
+}
+
+.gestion-modal-body .gestion-order-detail {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.gestion-order-detail__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.gestion-order-detail__header h3,
+.gestion-order-detail__header p {
+  margin: 0.2rem 0 0;
+}
+
+.gestion-order-detail__meta {
+  display: grid;
+  gap: 0.35rem;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.gestion-order-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.gestion-order-detail__panel {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(239, 226, 207, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.gestion-order-detail__panel strong,
+.gestion-order-detail__panel small,
+.gestion-order-detail__panel p {
+  display: block;
+}
+
+.gestion-order-detail__panel p,
+.gestion-order-detail__panel small {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+}
+
+.gestion-order-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 170, 90, 0.16);
+  background: rgba(212, 170, 90, 0.08);
+}
+
+.gestion-order-total span {
+  color: var(--text-muted);
+}
+
+.gestion-order-total strong {
+  color: var(--text-light);
+  font-size: 1.1rem;
 }
 
 .gestion-mini-badge {

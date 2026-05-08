@@ -9,7 +9,9 @@ from odoo.tests.common import TransactionCase
 from odoo.addons.tattoo_studio.controllers.auth import TattooAuthController
 from odoo.addons.tattoo_studio.controllers.artist import TattooArtistController
 from odoo.addons.tattoo_studio.controllers.gallery import TattooGalleryController
+from odoo.addons.tattoo_studio.controllers.order import TattooOrderController
 from odoo.addons.tattoo_studio.controllers.product import TattooProductController
+from odoo.addons.tattoo_studio.controllers.reviews import TattooReviewController
 from odoo.addons.tattoo_studio.controllers.service import TattooServiceController
 
 
@@ -89,12 +91,8 @@ class TattooManagementApiCase(TransactionCase):
         })
 
         cls.service = cls.env['tattoo.service'].sudo().create({
-            'name': 'Small Linework',
-            'service_type': 'small',
-            'base_price': 120.0,
-            'description': 'Tiny linework session.',
-            'estimated_time_hours': 1.0,
-            'available_colors': 'black',
+            'name': 'Cover',
+            'description': 'Servicio general para cubrir o transformar un tatuaje previo.',
             'active': True,
         })
 
@@ -106,6 +104,7 @@ class TattooManagementApiCase(TransactionCase):
             'code': 'AF-001',
             'active': True,
         })
+        cls.product.sudo().write({'quantity_available': 8})
 
         cls.gallery_item = cls.env['tattoo.artist.gallery'].sudo().create({
             'name': 'Galaxy Piece',
@@ -116,6 +115,12 @@ class TattooManagementApiCase(TransactionCase):
             'sequence': 10,
             'active': True,
             'image': TEST_IMAGE,
+        })
+
+        cls.portal_customer = cls.env['tattoo.customer'].sudo().create({
+            'name': 'Portal User',
+            'email': 'portal-user@example.com',
+            'phone': '555-0202',
         })
 
     def _patched_request(self, fake_request, module_paths):
@@ -138,6 +143,53 @@ class TattooManagementApiCase(TransactionCase):
         self.assertTrue(payload['is_admin'])
         self.assertFalse(payload['is_portal'])
         self.assertEqual(payload['role'], 'admin')
+
+    def test_portal_user_can_login(self):
+        fake_request = FakeRequest(
+            self.env,
+            method='POST',
+            json_data={
+                'email': 'portal-user@example.com',
+                'password': 'secret',
+            },
+        )
+
+        controller = TattooAuthController()
+        with self._patched_request(
+            fake_request,
+            ['odoo.addons.tattoo_studio.controllers.auth.request'],
+        ), patch.object(controller, '_authenticate_user', return_value=self.portal_user):
+            response = controller.login()
+
+        payload = self._json(response)
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['data']['role'], 'portal')
+        self.assertTrue(payload['data']['is_portal'])
+        self.assertTrue(payload['data']['token'])
+        self.assertTrue(self.env['tattoo.customer'].sudo().search([
+            ('email', '=', 'portal-user@example.com'),
+        ], limit=1))
+
+    def test_bad_portal_password_returns_unauthorized(self):
+        fake_request = FakeRequest(
+            self.env,
+            method='POST',
+            json_data={
+                'email': 'portal-user@example.com',
+                'password': 'wrong',
+            },
+        )
+
+        controller = TattooAuthController()
+        with self._patched_request(
+            fake_request,
+            ['odoo.addons.tattoo_studio.controllers.auth.request'],
+        ), patch.object(controller, '_authenticate_user', return_value=False):
+            response = controller.login()
+
+        payload = self._json(response)
+        self.assertFalse(payload['success'])
+        self.assertEqual(response.status_code, 401)
 
     def test_portal_user_cannot_mutate_internal_products(self):
         fake_request = FakeRequest(
@@ -210,6 +262,101 @@ class TattooManagementApiCase(TransactionCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(payload['data']['price'], 23.0)
         self.assertFalse(payload['data']['active'])
+
+    def test_portal_checkout_creates_reserved_order_and_internal_can_accept_it(self):
+        controller = TattooOrderController()
+
+        create_request = FakeRequest(
+            self.env,
+            method='POST',
+            headers={'Authorization': 'Bearer portal-token'},
+            json_data={
+                'items': [
+                    {
+                        'id': self.product.id,
+                        'quantity': 2,
+                    },
+                ],
+                'notes': 'Client will confirm by WhatsApp.',
+            },
+        )
+
+        with self._patched_request(
+            create_request,
+            [
+                'odoo.addons.tattoo_studio.controllers.api_utils.request',
+                'odoo.addons.tattoo_studio.controllers.order.request',
+            ],
+        ):
+            response = controller.orders()
+
+        payload = self._json(response)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(payload['data']['state'], 'draft')
+        self.assertTrue(payload['data']['stock_reserved'])
+        self.assertFalse(payload['data']['stock_committed'])
+
+        order_id = payload['data']['id']
+        self.product.invalidate_recordset(['quantity_reserved', 'quantity_available'])
+        self.assertEqual(self.product.quantity_reserved, 2)
+        self.assertEqual(self.product.quantity_available, 8)
+
+        accept_request = FakeRequest(
+            self.env,
+            method='PATCH',
+            headers={'Authorization': 'Bearer internal-token'},
+            json_data={
+                'action': 'accept',
+                'notes': 'Transfer confirmed.',
+            },
+            params={'scope': 'all'},
+        )
+
+        with self._patched_request(
+            accept_request,
+            [
+                'odoo.addons.tattoo_studio.controllers.api_utils.request',
+                'odoo.addons.tattoo_studio.controllers.order.request',
+            ],
+        ):
+            response = controller.order_detail(order_id)
+
+        payload = self._json(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload['data']['state'], 'confirmed')
+        self.assertEqual(payload['data']['payment_state'], 'paid')
+        self.assertFalse(payload['data']['stock_reserved'])
+        self.assertTrue(payload['data']['stock_committed'])
+
+        self.product.invalidate_recordset(['quantity_reserved', 'quantity_available'])
+        self.assertEqual(self.product.quantity_reserved, 0)
+        self.assertEqual(self.product.quantity_available, 6)
+
+        complete_request = FakeRequest(
+            self.env,
+            method='PATCH',
+            headers={'Authorization': 'Bearer internal-token'},
+            json_data={
+                'action': 'complete',
+                'notes': 'Closed after WhatsApp confirmation.',
+            },
+            params={'scope': 'all'},
+        )
+
+        with self._patched_request(
+            complete_request,
+            [
+                'odoo.addons.tattoo_studio.controllers.api_utils.request',
+                'odoo.addons.tattoo_studio.controllers.order.request',
+            ],
+        ):
+            response = controller.order_detail(order_id)
+
+        payload = self._json(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload['data']['state'], 'done')
+        self.assertEqual(payload['data']['payment_state'], 'paid')
+        self.assertTrue(payload['data']['stock_committed'])
 
         delete_request = FakeRequest(
             self.env,
@@ -335,14 +482,9 @@ class TattooManagementApiCase(TransactionCase):
             method='POST',
             headers={'Authorization': 'Bearer internal-token'},
             json_data={
-                'name': 'Medium Session',
-                'type': 'medium',
-                'price': 220.0,
-                'estimatedTimeHours': 2.5,
-                'colors': 'color',
-                'description': 'Color session.',
+                'name': 'Modificacion',
+                'description': 'Ajustes o cambios sobre un trabajo existente.',
                 'active': True,
-                'artist_ids': [self.artist.id],
             },
         )
 
@@ -358,13 +500,14 @@ class TattooManagementApiCase(TransactionCase):
         payload = self._json(response)
         self.assertEqual(response.status_code, 201)
         service_id = payload['data']['id']
-        self.assertIn(self.artist.id, payload['data']['artist_ids'])
+        self.assertEqual(payload['data']['name'], 'Modificacion')
+        self.assertTrue(payload['data']['active'])
 
         update_request = FakeRequest(
             self.env,
             method='PUT',
             headers={'Authorization': 'Bearer internal-token'},
-            json_data={'price': 245.0, 'active': False},
+            json_data={'description': 'Servicio actualizado.', 'active': False},
         )
         with self._patched_request(
             update_request,
@@ -377,7 +520,7 @@ class TattooManagementApiCase(TransactionCase):
 
         payload = self._json(response)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(payload['data']['price'], 245.0)
+        self.assertEqual(payload['data']['description'], 'Servicio actualizado.')
         self.assertFalse(payload['data']['active'])
 
         delete_request = FakeRequest(
@@ -396,6 +539,68 @@ class TattooManagementApiCase(TransactionCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(self.env['tattoo.service'].sudo().browse(service_id).exists())
+
+    def test_portal_user_can_create_artist_review(self):
+        request_data = FakeRequest(
+            self.env,
+            method='POST',
+            headers={'Authorization': 'Bearer portal-token'},
+            json_data={
+                'itemType': 'artist',
+                'itemId': self.artist.id,
+                'rating': 5,
+                'comment': 'Excelente experiencia.',
+            },
+        )
+
+        with self._patched_request(
+            request_data,
+            [
+                'odoo.addons.tattoo_studio.controllers.api_utils.request',
+                'odoo.addons.tattoo_studio.controllers.reviews.request',
+            ],
+        ):
+            response = TattooReviewController().create_review()
+
+        payload = self._json(response)
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['data']['rating'], 5)
+
+    def test_portal_user_cannot_create_duplicate_artist_review(self):
+        self.env['tattoo.review'].sudo().create({
+            'customer_id': self.portal_customer.id,
+            'review_type': 'artist',
+            'artist_id': self.artist.id,
+            'rating': 5,
+            'comment': 'Primera reseña.',
+            'state': 'approved',
+        })
+
+        request_data = FakeRequest(
+            self.env,
+            method='POST',
+            headers={'Authorization': 'Bearer portal-token'},
+            json_data={
+                'itemType': 'artist',
+                'itemId': self.artist.id,
+                'rating': 4,
+                'comment': 'Quiero calificar sin cita completada.',
+            },
+        )
+
+        with self._patched_request(
+            request_data,
+            [
+                'odoo.addons.tattoo_studio.controllers.api_utils.request',
+                'odoo.addons.tattoo_studio.controllers.reviews.request',
+            ],
+        ):
+            response = TattooReviewController().create_review()
+
+        payload = self._json(response)
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(payload['success'])
 
     def test_public_lists_hide_inactive_records(self):
         self.artist.active = False

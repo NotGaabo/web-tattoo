@@ -84,6 +84,18 @@ export const productService = {
   }
 };
 
+export const productBrandService = {
+  getAll: async () => {
+    try {
+      const response = await apiClient.get('/api/product-brands');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching product brands:', error);
+      return [];
+    }
+  },
+};
+
 /**
  * Servicio para gestionar servicios de tatuaje
  */
@@ -206,7 +218,7 @@ export const orderService = {
    */
   getUserOrders: async (userId) => {
     try {
-      const response = await apiClient.get(`/api/users/${userId}/orders`);
+      const response = await apiClient.get('/api/orders');
       return response.data;
     } catch (error) {
       console.error('Error fetching user orders:', error);
@@ -241,7 +253,7 @@ export const reviewService = {
       return response.data;
     } catch (error) {
       console.error('Error creating review:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || error.message || 'No se pudo crear la reseña.');
     }
   }
 };
@@ -301,6 +313,28 @@ export const appointmentService = {
       throw error;
     }
   }
+};
+
+export const contactRequestService = {
+  create: async (payload) => {
+    try {
+      const response = await apiClient.post('/api/contact-requests', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating contact request:', error);
+      throw error;
+    }
+  },
+
+  getMine: async () => {
+    try {
+      const response = await apiClient.get('/api/contact-requests');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching contact requests:', error);
+      return [];
+    }
+  },
 };
 
 export default apiClient;

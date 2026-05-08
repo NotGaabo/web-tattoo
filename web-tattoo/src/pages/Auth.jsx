@@ -85,7 +85,7 @@ export default function Auth() {
     event.preventDefault();
 
     if (!registerData.name || !registerData.email || !registerData.password) {
-      showNotification('Completa nombre, correo y contrasena para crear tu portal.', 'warning');
+      showNotification('Completa nombre, correo y contrasena para crear tu cuenta.', 'warning');
       return;
     }
 
@@ -99,10 +99,10 @@ export default function Auth() {
     try {
       const session = await odooAuthService.register(registerData);
       setSession(session, session.token);
-      showNotification('Registro listo. Tu usuario se creo como portal.', 'success');
+      showNotification('Registro listo. Tu cuenta fue creada correctamente.', 'success');
       navigate(getSessionHomePath(session), { replace: true });
     } catch (error) {
-      showNotification(error.message || 'No se pudo completar el registro portal.', 'error');
+      showNotification(error.message || 'No se pudo completar el registro.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -127,7 +127,7 @@ export default function Auth() {
             <div className="auth-pill-list">
               <div className="auth-pill">
                 <FiShield />
-                <span>Registro portal con sesion conectada a Odoo</span>
+                <span>Registro con sesion conectada a Odoo</span>
               </div>
               <div className="auth-pill">
                 <FiUser />
@@ -200,7 +200,7 @@ export default function Auth() {
                 </div>
 
                 <button type="submit" className="btn btn-primary auth-submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Entrando...' : 'Entrar al portal'}
+                  {isSubmitting ? 'Entrando...' : 'Entrar'}
                 </button>
               </form>
             ) : (

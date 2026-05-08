@@ -19,7 +19,7 @@ function normalizeSession(data = {}) {
 
 export function getSessionHomePath(sessionOrRole) {
   const role = typeof sessionOrRole === 'string' ? sessionOrRole : sessionOrRole?.role;
-  return role === 'portal' ? '/portal' : '/gestion';
+  return role === 'portal' ? '/' : '/gestion';
 }
 
 async function apiCall(endpoint, method = 'GET', body = null, token = null) {

@@ -6,6 +6,7 @@
     <menuitem id="menu_tattoo_customers" name="Customers" parent="menu_tattoo_root" sequence="10" action="action_tattoo_customer"/>
 
     <menuitem id="menu_tattoo_products" name="Products" parent="menu_tattoo_root" sequence="20" action="action_tattoo_product"/>
+    <menuitem id="menu_tattoo_product_brands" name="Brands" parent="menu_tattoo_root" sequence="25" action="action_tattoo_product_brand"/>
 
     <menuitem id="menu_tattoo_services" name="Services" parent="menu_tattoo_root" sequence="30" action="action_tattoo_service"/>
 
@@ -15,6 +16,7 @@
     <menuitem id="menu_tattoo_operations" name="Operations" parent="menu_tattoo_root" sequence="50"/>
     <menuitem id="menu_tattoo_orders" name="Orders" parent="menu_tattoo_operations" sequence="10" action="action_tattoo_order"/>
     <menuitem id="menu_tattoo_appointments" name="Appointments" parent="menu_tattoo_operations" sequence="20" action="action_tattoo_appointment"/>
+    <menuitem id="menu_tattoo_contact_requests" name="Contact Requests" parent="menu_tattoo_operations" sequence="30" action="action_tattoo_contact_request"/>
 
     <menuitem id="menu_tattoo_reviews" name="Reviews" parent="menu_tattoo_root" sequence="60" action="action_tattoo_review"/>
 </odoo>

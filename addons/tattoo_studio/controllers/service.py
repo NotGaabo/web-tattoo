@@ -7,35 +7,48 @@ from .api_utils import TattooApiControllerMixin
 
 
 class TattooServiceController(TattooApiControllerMixin, http.Controller):
-    def _serialize_service(self, service):
-        type_labels = {
-            'small': 'Pequeño Tatuaje',
-            'medium': 'Tatuaje Mediano',
-            'large': 'Tatuaje Grande',
-        }
-        color_labels = {
-            'black': 'Negro',
-            'color': 'Color',
-            'all': 'Todos',
-        }
+    _allowed_write_fields = {'name', 'description', 'active'}
+    _deprecated_fields = {
+        'type': 'Los servicios ya no manejan tipo.',
+        'price': 'Los servicios se cotizan por WhatsApp, sin precio fijo.',
+        'estimatedTimeHours': 'Los servicios ya no guardan tiempo estimado por registro.',
+        'colors': 'Los servicios ya no guardan colores por registro.',
+        'artist_ids': 'Los servicios ya no se asignan a tatuadores especificos.',
+    }
 
+    def _serialize_service(self, service):
         return {
             'id': service.id,
             'name': service.name,
-            'type': service.service_type,
-            'typeName': type_labels.get(service.service_type, service.service_type),
-            'price': service.base_price,
-            'estimatedTime': f'{int(service.estimated_time_hours * 60) if service.estimated_time_hours else 0} min',
-            'estimatedTimeHours': service.estimated_time_hours or 0,
-            'colors': service.available_colors,
-            'colorsName': color_labels.get(service.available_colors, service.available_colors),
             'description': service.description or '',
             'total_appointments': service.total_appointments or 0,
             'average_rating': service.average_rating or 0.0,
-            'available_artists': len(service.artist_ids),
-            'artist_ids': service.artist_ids.ids,
             'active': service.active,
         }
+
+    def _validate_service_payload(self, data, require_name=False):
+        invalid = [field for field in data.keys() if field not in self._allowed_write_fields]
+        if invalid:
+            field = invalid[0]
+            message = self._deprecated_fields.get(field, f'Campo no permitido: {field}')
+            return self._response({
+                'success': False,
+                'message': message,
+            }, status=400)
+
+        if require_name and not (data.get('name') or '').strip():
+            return self._response({
+                'success': False,
+                'message': 'name is required',
+            }, status=400)
+
+        if 'name' in data and not (data.get('name') or '').strip():
+            return self._response({
+                'success': False,
+                'message': 'name cannot be empty',
+            }, status=400)
+
+        return None
 
     @http.route('/api/services', type='http', auth='public', methods=['GET', 'POST', 'OPTIONS'], csrf=False)
     def services(self, **kwargs):
@@ -45,7 +58,7 @@ class TattooServiceController(TattooApiControllerMixin, http.Controller):
         if request.httprequest.method == 'GET':
             internal_user = self._user_from_token(self._extract_token())
             domain = [] if internal_user and not internal_user.share else [('active', '=', True)]
-            services = request.env['tattoo.service'].sudo().search(domain, order='service_type, id')
+            services = request.env['tattoo.service'].sudo().search(domain, order='name, id')
             return self._response({
                 'success': True,
                 'data': [self._serialize_service(service) for service in services],
@@ -56,25 +69,14 @@ class TattooServiceController(TattooApiControllerMixin, http.Controller):
             return error_response
 
         data = request.httprequest.get_json(silent=True) or {}
-        name = (data.get('name') or '').strip()
-        service_type = (data.get('type') or '').strip()
-        price = data.get('price')
-
-        if not name or not service_type or price is None:
-            return self._response({
-                'success': False,
-                'message': 'name, type and price are required',
-            }, status=400)
+        validation_error = self._validate_service_payload(data, require_name=True)
+        if validation_error:
+            return validation_error
 
         service = request.env['tattoo.service'].sudo().create({
-            'name': name,
-            'service_type': service_type,
-            'base_price': float(price),
+            'name': (data.get('name') or '').strip(),
             'description': (data.get('description') or '').strip(),
-            'estimated_time_hours': float(data.get('estimatedTimeHours') or 1.0),
-            'available_colors': data.get('colors') or 'black',
             'active': bool(data.get('active', True)),
-            'artist_ids': [(6, 0, data.get('artist_ids') or [])],
         })
 
         return self._response({
@@ -114,24 +116,17 @@ class TattooServiceController(TattooApiControllerMixin, http.Controller):
 
         if request.httprequest.method in ('PUT', 'PATCH'):
             data = request.httprequest.get_json(silent=True) or {}
+            validation_error = self._validate_service_payload(data)
+            if validation_error:
+                return validation_error
             values = {}
 
             if 'name' in data:
                 values['name'] = (data.get('name') or '').strip()
-            if 'type' in data:
-                values['service_type'] = (data.get('type') or '').strip()
-            if 'price' in data:
-                values['base_price'] = float(data.get('price') or 0)
             if 'description' in data:
                 values['description'] = (data.get('description') or '').strip()
-            if 'estimatedTimeHours' in data:
-                values['estimated_time_hours'] = float(data.get('estimatedTimeHours') or 0)
-            if 'colors' in data:
-                values['available_colors'] = (data.get('colors') or '').strip()
             if 'active' in data:
                 values['active'] = bool(data.get('active'))
-            if 'artist_ids' in data:
-                values['artist_ids'] = [(6, 0, data.get('artist_ids') or [])]
 
             if not values:
                 return self._response({

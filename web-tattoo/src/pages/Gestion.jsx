@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
+  FiArrowLeft,
   FiBarChart2,
   FiCheckCircle,
   FiDroplet,
@@ -24,22 +25,27 @@ import './Gestion.css';
 
 const EMPTY_ARTIST = {
   name: '',
-  email: '',
-  phone: '',
+  social_handle: '',
   specialization: '',
   biography: '',
-  years_of_experience: 0,
-  is_available: true,
-  active: true,
   image: '',
   imagePreview: '',
 };
 
 const EMPTY_PRODUCT = {
   name: '',
+  brand_id: '',
   brand: '',
   price: '',
-  description: '',
+  quantity_available: '0',
+  image: '',
+  imagePreview: '',
+};
+
+const EMPTY_BRAND = {
+  id: null,
+  name: '',
+  active: true,
 };
 
 const EMPTY_GALLERY = {
@@ -56,19 +62,16 @@ const EMPTY_GALLERY = {
 
 const EMPTY_SERVICE = {
   name: '',
-  type: 'small',
-  price: '',
-  estimatedTimeHours: '1',
-  colors: 'black',
   description: '',
   active: true,
-  artist_ids: [],
 };
 
 const SECTIONS = [
   { key: 'dashboard', label: 'Dashboard', icon: FiBarChart2, path: '/gestion' },
   { key: 'artistas', label: 'Artistas', icon: FiUsers, path: '/gestion/artistas' },
   { key: 'productos', label: 'Productos', icon: FiPackage, path: '/gestion/productos' },
+  { key: 'ordenes', label: 'Ordenes', icon: FiCheckCircle, path: '/gestion/ordenes' },
+  { key: 'marcas', label: 'Marcas', icon: FiDroplet, path: '/gestion/marcas' },
   { key: 'galeria', label: 'Galeria', icon: FiImage, path: '/gestion/galeria' },
   { key: 'servicios', label: 'Servicios', icon: FiLayers, path: '/gestion/servicios' },
 ];
@@ -89,7 +92,16 @@ const TATTOO_TYPES = [
 
 function sectionFromPath(pathname) {
   const part = pathname.split('/')[2];
-  return ['artistas', 'productos', 'galeria', 'servicios'].includes(part) ? part : 'dashboard';
+  return ['artistas', 'productos', 'ordenes', 'marcas', 'galeria', 'servicios'].includes(part) ? part : 'dashboard';
+}
+
+function orderIdFromPath(pathname) {
+  const parts = pathname.split('/');
+  if (parts[2] !== 'ordenes') {
+    return null;
+  }
+  const rawId = parts[3];
+  return rawId ? Number(rawId) || null : null;
 }
 
 function previewSource(value) {
@@ -115,6 +127,27 @@ function toDataUrl(file) {
 
 function entityMessage(entity, action) {
   return `${entity} ${action}.`;
+}
+
+function formatOrderState(state) {
+  const labels = {
+    draft: 'Nueva',
+    confirmed: 'Confirmada',
+    processing: 'En proceso',
+    shipped: 'Enviada',
+    done: 'Completada',
+    cancelled: 'Cancelada',
+  };
+  return labels[state] || state || 'Sin estado';
+}
+
+function formatPaymentState(state) {
+  const labels = {
+    paid: 'Pagada',
+    partial: 'Parcial',
+    not_paid: 'Pendiente',
+  };
+  return labels[state] || state || 'Sin estado';
 }
 
 function StatCard({ icon: Icon, label, value, hint }) {
@@ -199,16 +232,20 @@ export default function Gestion() {
 
   const [artists, setArtists] = useState([]);
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [artistForm, setArtistForm] = useState(EMPTY_ARTIST);
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
+  const [brandForm, setBrandForm] = useState(EMPTY_BRAND);
   const [galleryForm, setGalleryForm] = useState(EMPTY_GALLERY);
   const [serviceForm, setServiceForm] = useState(EMPTY_SERVICE);
   const [activeModal, setActiveModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [editing, setEditing] = useState({
     artistId: null,
     productId: null,
@@ -217,6 +254,7 @@ export default function Gestion() {
   });
 
   const section = sectionFromPath(location.pathname);
+  const orderDetailId = orderIdFromPath(location.pathname);
   const currentSection = SECTIONS.find((item) => item.key === section) || SECTIONS[0];
 
   const loadData = async () => {
@@ -225,6 +263,8 @@ export default function Gestion() {
       const snapshot = await managementApi.getDashboard();
       setArtists(snapshot.artists || []);
       setProducts(snapshot.products || []);
+      setOrders(snapshot.orders || []);
+      setBrands(snapshot.brands || []);
       setGallery(snapshot.gallery || []);
       setServices(snapshot.services || []);
     } catch (error) {
@@ -239,10 +279,26 @@ export default function Gestion() {
   }, []);
 
   useEffect(() => {
-    if (!['dashboard', 'artistas', 'productos', 'galeria', 'servicios'].includes(section)) {
+    if (!['dashboard', 'artistas', 'productos', 'ordenes', 'marcas', 'galeria', 'servicios'].includes(section)) {
       navigate('/gestion', { replace: true });
     }
   }, [navigate, section]);
+
+  useEffect(() => {
+    if (!orders.length) {
+      setSelectedOrderId(null);
+      return;
+    }
+
+    if (orderDetailId && orders.some((order) => order.id === orderDetailId)) {
+      setSelectedOrderId(orderDetailId);
+      return;
+    }
+
+    if (!selectedOrderId || !orders.some((order) => order.id === selectedOrderId)) {
+      setSelectedOrderId(orders[0].id);
+    }
+  }, [orderDetailId, orders, selectedOrderId]);
 
   useEffect(() => {
     if (section === 'galeria' && !galleryForm.artist_id && artists[0]?.id) {
@@ -251,8 +307,8 @@ export default function Gestion() {
   }, [artists, galleryForm.artist_id, section]);
 
   const stats = useMemo(() => {
-    const activeArtists = artists.filter((item) => item.active !== false).length;
     const activeProducts = products.filter((item) => item.active !== false).length;
+    const pendingOrders = orders.filter((item) => ['draft', 'confirmed', 'processing'].includes(item.state)).length;
     const activeGallery = gallery.filter((item) => item.active !== false).length;
     const activeServices = services.filter((item) => item.active !== false).length;
 
@@ -261,13 +317,19 @@ export default function Gestion() {
         icon: FiUsers,
         label: 'Tatuadores',
         value: artists.length,
-        hint: `${activeArtists} activos`,
+        hint: 'Perfiles del estudio',
       },
       {
         icon: FiPackage,
         label: 'Productos',
         value: products.length,
         hint: `${activeProducts} visibles`,
+      },
+      {
+        icon: FiCheckCircle,
+        label: 'Ordenes',
+        value: orders.length,
+        hint: `${pendingOrders} pendientes`,
       },
       {
         icon: FiImage,
@@ -282,7 +344,12 @@ export default function Gestion() {
         hint: `${activeServices} disponibles`,
       },
     ];
-  }, [artists, gallery, products, services]);
+  }, [artists, gallery, orders, products, services]);
+
+  const selectedOrder = useMemo(
+    () => orders.find((order) => order.id === selectedOrderId) || null,
+    [orders, selectedOrderId],
+  );
 
   const handleLogout = async () => {
     try {
@@ -311,6 +378,17 @@ export default function Gestion() {
     if (!file) return;
     const preview = await toDataUrl(file);
     setGalleryForm((current) => ({
+      ...current,
+      image: preview.split(',')[1] || '',
+      imagePreview: preview,
+    }));
+  };
+
+  const setProductImage = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const preview = await toDataUrl(file);
+    setProductForm((current) => ({
       ...current,
       image: preview.split(',')[1] || '',
       imagePreview: preview,
@@ -367,13 +445,9 @@ export default function Gestion() {
   const beginArtistEdit = (artist) => {
     setArtistForm({
       name: artist.name || '',
-      email: artist.email || '',
-      phone: artist.phone || '',
+      social_handle: artist.social_handle || '',
       specialization: artist.specialization || '',
       biography: artist.biography || '',
-      years_of_experience: artist.years_of_experience || 0,
-      is_available: artist.is_available !== false,
-      active: artist.active !== false,
       image: '',
       imagePreview: artist.image || '',
     });
@@ -384,9 +458,12 @@ export default function Gestion() {
   const beginProductEdit = (product) => {
     setProductForm({
       name: product.name || '',
+      brand_id: product.brand_id ? String(product.brand_id) : '',
       brand: product.brand || '',
       price: product.price ?? '',
-      description: product.description || '',
+      quantity_available: String(product.quantity_available ?? 0),
+      image: '',
+      imagePreview: product.image || '',
     });
     setEditing((current) => ({ ...current, productId: product.id }));
     setActiveModal('product');
@@ -411,13 +488,8 @@ export default function Gestion() {
   const beginServiceEdit = (service) => {
     setServiceForm({
       name: service.name || '',
-      type: service.type || 'small',
-      price: service.price ?? '',
-      estimatedTimeHours: service.estimatedTimeHours ?? 1,
-      colors: service.colors || 'black',
       description: service.description || '',
       active: service.active !== false,
-      artist_ids: (service.artist_ids || []).map(String),
     });
     setEditing((current) => ({ ...current, serviceId: service.id }));
     setActiveModal('service');
@@ -430,13 +502,9 @@ export default function Gestion() {
     try {
       const payload = {
         name: artistForm.name,
-        email: artistForm.email,
-        phone: artistForm.phone,
+        social_handle: artistForm.social_handle,
         specialization: artistForm.specialization,
         biography: artistForm.biography,
-        years_of_experience: Number(artistForm.years_of_experience || 0),
-        is_available: Boolean(artistForm.is_available),
-        active: Boolean(artistForm.active),
       };
 
       if (artistForm.image) {
@@ -465,15 +533,31 @@ export default function Gestion() {
 
   const submitProduct = async (event) => {
     event.preventDefault();
+
+    if (!productForm.name.trim() || !productForm.brand_id || productForm.price === '' || productForm.quantity_available === '') {
+      showNotification('Completa todos los campos del producto.', 'warning');
+      return;
+    }
+
+    if (!productForm.image && !productForm.imagePreview) {
+      showNotification('La foto del producto es obligatoria.', 'warning');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       const payload = {
-        name: productForm.name,
+        name: productForm.name.trim(),
+        brand_id: productForm.brand_id ? Number(productForm.brand_id) : false,
         brand: productForm.brand,
         price: Number(productForm.price || 0),
-        description: productForm.description,
+        quantity_available: Number(productForm.quantity_available || 0),
       };
+
+      if (productForm.image) {
+        payload.image = productForm.image;
+      }
 
       if (editing.productId) {
         await managementApi.updateProduct(editing.productId, payload);
@@ -536,18 +620,19 @@ export default function Gestion() {
 
   const submitService = async (event) => {
     event.preventDefault();
+
+    if (!serviceForm.name.trim() || !serviceForm.description.trim()) {
+      showNotification('Completa nombre y descripcion del servicio.', 'warning');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       const payload = {
-        name: serviceForm.name,
-        type: serviceForm.type,
-        price: Number(serviceForm.price || 0),
-        estimatedTimeHours: Number(serviceForm.estimatedTimeHours || 0),
-        colors: serviceForm.colors,
-        description: serviceForm.description,
+        name: serviceForm.name.trim(),
+        description: serviceForm.description.trim(),
         active: Boolean(serviceForm.active),
-        artist_ids: serviceForm.artist_ids.map((id) => Number(id)),
       };
 
       if (editing.serviceId) {
@@ -587,6 +672,54 @@ export default function Gestion() {
       name,
       title: 'Eliminar producto',
       description: 'Esta accion eliminara el producto del inventario gestionado.',
+    });
+  };
+
+  const submitBrand = async (event) => {
+    event.preventDefault();
+    if (!brandForm.name.trim()) {
+      showNotification('Escribe el nombre de la marca.', 'warning');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        name: brandForm.name.trim(),
+        active: Boolean(brandForm.active),
+      };
+
+      if (brandForm.id) {
+        await managementApi.updateProductBrand(brandForm.id, payload);
+        showNotification('Marca actualizada.', 'success');
+      } else {
+        await managementApi.createProductBrand(payload);
+        showNotification('Marca creada.', 'success');
+      }
+      setBrandForm(EMPTY_BRAND);
+      await loadData();
+    } catch (error) {
+      showNotification(error.response?.data?.message || error.message || 'No se pudo guardar la marca.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const removeBrand = (id, name) => {
+    setDeleteTarget({
+      kind: 'brand',
+      id,
+      name,
+      title: 'Eliminar marca',
+      description: 'Si la marca tiene productos asociados, se archivara en vez de borrarse.',
+    });
+  };
+
+  const beginBrandEdit = (brand) => {
+    setBrandForm({
+      id: brand.id,
+      name: brand.name || '',
+      active: brand.active !== false,
     });
   };
 
@@ -636,6 +769,11 @@ export default function Gestion() {
           message: 'Servicio eliminado.',
           fallback: 'No se pudo eliminar el servicio.',
         },
+        brand: {
+          run: () => managementApi.deleteProductBrand(deleteTarget.id),
+          message: 'Marca actualizada.',
+          fallback: 'No se pudo eliminar la marca.',
+        },
       };
       const action = actions[deleteTarget.kind];
 
@@ -650,6 +788,7 @@ export default function Gestion() {
             product: 'No se pudo eliminar el producto.',
             gallery: 'No se pudo eliminar la galeria.',
             service: 'No se pudo eliminar el servicio.',
+            brand: 'No se pudo eliminar la marca.',
           }[deleteTarget.kind]
         : 'No se pudo eliminar el registro.';
       setDeleteTarget(null);
@@ -659,22 +798,40 @@ export default function Gestion() {
     }
   };
 
-  const toggleServiceArtist = (artistId) => {
-    const id = String(artistId);
-    setServiceForm((current) => {
-      const selected = current.artist_ids.includes(id);
-      return {
-        ...current,
-        artist_ids: selected
-          ? current.artist_ids.filter((currentId) => currentId !== id)
-          : [...current.artist_ids, id],
+  const updateOrder = async (orderId, action) => {
+    const order = orders.find((item) => item.id === orderId);
+    if (!order) {
+      showNotification('No encontramos la orden seleccionada.', 'warning');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        action,
+        notes: order.notes || '',
       };
-    });
+      const updatedOrder = await managementApi.updateOrder(orderId, payload);
+      const nextOrders = orders.map((item) => (item.id === orderId ? updatedOrder : item));
+      setOrders(nextOrders);
+      setSelectedOrderId(orderId);
+      showNotification('Orden actualizada.', 'success');
+    } catch (error) {
+      showNotification(error.response?.data?.message || error.message || 'No se pudo actualizar la orden.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const updateServiceArtists = (event) => {
-    const ids = Array.from(event.target.selectedOptions).map((option) => option.value);
-    setServiceForm((current) => ({ ...current, artist_ids: ids }));
+  const updateOrderNotes = (orderId, notes) => {
+    setOrders((current) =>
+      current.map((order) => (order.id === orderId ? { ...order, notes } : order)),
+    );
+  };
+
+  const openOrderDetail = (orderId) => {
+    setSelectedOrderId(orderId);
+    navigate(`/gestion/ordenes/${orderId}`);
   };
 
   return (
@@ -832,7 +989,7 @@ export default function Gestion() {
                   <article className="gestion-card">
                     <SectionHeader
                       title="Artistas"
-                      description="Crea, edita y desactiva tatuadores del estudio."
+                      description="Crea el perfil publico del tatuador. Los trabajos se cargan desde Galeria."
                       actionLabel="Nuevo artista"
                       onAction={openArtistModal}
                     />
@@ -846,35 +1003,19 @@ export default function Gestion() {
                             onChange={(e) => setArtistForm((current) => ({ ...current, name: e.target.value }))}
                           />
                         </Field>
-                        <Field label="Especializacion">
+                        <Field label="Especialidad">
                           <input
                             type="text"
                             value={artistForm.specialization}
                             onChange={(e) => setArtistForm((current) => ({ ...current, specialization: e.target.value }))}
+                            placeholder="Ej. Fine line, blackwork, realism"
                           />
                         </Field>
-                        <Field label="Correo">
-                          <input
-                            type="email"
-                            value={artistForm.email}
-                            onChange={(e) => setArtistForm((current) => ({ ...current, email: e.target.value }))}
-                          />
-                        </Field>
-                        <Field label="Telefono">
+                        <Field label="Handle social">
                           <input
                             type="text"
-                            value={artistForm.phone}
-                            onChange={(e) => setArtistForm((current) => ({ ...current, phone: e.target.value }))}
-                          />
-                        </Field>
-                        <Field label="Anios de experiencia">
-                          <input
-                            type="number"
-                            min="0"
-                            value={artistForm.years_of_experience}
-                            onChange={(e) =>
-                              setArtistForm((current) => ({ ...current, years_of_experience: e.target.value }))
-                            }
+                            value={artistForm.social_handle}
+                            onChange={(e) => setArtistForm((current) => ({ ...current, social_handle: e.target.value }))}
                           />
                         </Field>
                         <Field label="Foto">
@@ -882,31 +1023,13 @@ export default function Gestion() {
                         </Field>
                       </div>
 
-                      <Field label="Biografia">
+                      <Field label="Detalle">
                         <textarea
                           value={artistForm.biography}
                           onChange={(e) => setArtistForm((current) => ({ ...current, biography: e.target.value }))}
+                          placeholder="Descripcion breve del artista para la web."
                         />
                       </Field>
-
-                      <div className="gestion-switch-row">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={artistForm.is_available}
-                            onChange={(e) => setArtistForm((current) => ({ ...current, is_available: e.target.checked }))}
-                          />
-                          Disponible
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={artistForm.active}
-                            onChange={(e) => setArtistForm((current) => ({ ...current, active: e.target.checked }))}
-                          />
-                          Activo
-                        </label>
-                      </div>
 
                       {artistForm.imagePreview && (
                         <div className="gestion-image-preview">
@@ -929,9 +1052,8 @@ export default function Gestion() {
                         <thead>
                           <tr>
                             <th>Artista</th>
-                            <th>Especializacion</th>
-                            <th>Experiencia</th>
-                            <th>Estado</th>
+                            <th>Handle</th>
+                            <th>Trabajos</th>
                             <th>Acciones</th>
                           </tr>
                         </thead>
@@ -949,13 +1071,12 @@ export default function Gestion() {
                                   )}
                                   <div>
                                     <strong>{artist.name}</strong>
-                                    <span>{artist.email}</span>
+                                    <span>{artist.specialization || 'Sin especialidad'}</span>
                                   </div>
                                 </div>
                               </td>
-                              <td>{artist.specialization || 'Sin especialidad'}</td>
-                              <td>{artist.years_of_experience || 0} años</td>
-                              <td>{artist.active !== false ? 'Activo' : 'Inactivo'}</td>
+                              <td>{artist.social_handle || 'Sin handle'}</td>
+                              <td>{(artist.gallery || []).length}</td>
                               <td>
                                 <div className="gestion-row-actions">
                                   <button type="button" onClick={() => beginArtistEdit(artist)}>
@@ -995,11 +1116,25 @@ export default function Gestion() {
                           />
                         </Field>
                         <Field label="Marca">
-                          <input
-                            type="text"
-                            value={productForm.brand}
-                            onChange={(e) => setProductForm((current) => ({ ...current, brand: e.target.value }))}
-                          />
+                          <select
+                            value={productForm.brand_id}
+                            onChange={(e) => {
+                              const nextId = e.target.value;
+                              const selectedBrand = brands.find((brand) => String(brand.id) === nextId);
+                              setProductForm((current) => ({
+                                ...current,
+                                brand_id: nextId,
+                                brand: selectedBrand?.name || '',
+                              }));
+                            }}
+                          >
+                            <option value="">Selecciona una marca</option>
+                            {brands.map((brand) => (
+                              <option key={brand.id} value={brand.id}>
+                                {brand.name}
+                              </option>
+                            ))}
+                          </select>
                         </Field>
                         <Field label="Precio">
                           <input
@@ -1010,14 +1145,26 @@ export default function Gestion() {
                             onChange={(e) => setProductForm((current) => ({ ...current, price: e.target.value }))}
                           />
                         </Field>
+                        <Field label="Cantidad disponible">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={productForm.quantity_available}
+                            onChange={(e) => setProductForm((current) => ({ ...current, quantity_available: e.target.value }))}
+                          />
+                        </Field>
                       </div>
 
-                      <Field label="Descripcion">
-                        <textarea
-                          value={productForm.description}
-                          onChange={(e) => setProductForm((current) => ({ ...current, description: e.target.value }))}
-                        />
+                      <Field label="Foto del producto">
+                        <input type="file" accept="image/*" onChange={setProductImage} />
                       </Field>
+
+                      {productForm.imagePreview && (
+                        <div className="gestion-image-preview">
+                          <img src={previewSource(productForm.imagePreview)} alt="Preview producto" />
+                        </div>
+                      )}
 
                       <div className="gestion-form-actions">
                         <button type="submit" className="btn btn-primary" disabled={isSaving}>
@@ -1036,6 +1183,7 @@ export default function Gestion() {
                             <th>Producto</th>
                             <th>Marca</th>
                             <th>Precio</th>
+                            <th>Stock</th>
                             <th>Acciones</th>
                           </tr>
                         </thead>
@@ -1053,12 +1201,13 @@ export default function Gestion() {
                                   )}
                                   <div>
                                     <strong>{product.name}</strong>
-                                    <span>{product.description || 'Sin descripcion'}</span>
+                                    <span>Cantidad: {Number(product.quantity_sellable ?? product.quantity_available ?? 0)}</span>
                                   </div>
                                 </div>
                               </td>
                               <td>{product.brand || 'Sin marca'}</td>
                               <td>${Number(product.price || 0).toFixed(2)}</td>
+                              <td>{Number(product.quantity_sellable ?? product.quantity_available ?? 0)}</td>
                               <td>
                                 <div className="gestion-row-actions">
                                   <button type="button" onClick={() => beginProductEdit(product)}>
@@ -1073,6 +1222,230 @@ export default function Gestion() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </article>
+                </motion.div>
+              )}
+
+              {section === 'ordenes' && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                  <article className="gestion-card">
+                    {!orderDetailId ? (
+                      <>
+                        <SectionHeader
+                          title="Ordenes"
+                          description="Vista previa simple de pedidos. En detalle revisas toda la informacion del cliente y cierras la orden."
+                        />
+
+                        <div className="gestion-table-wrap">
+                          <table className="gestion-table">
+                            <thead>
+                              <tr>
+                                <th>Orden</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {orders.map((order) => (
+                                <tr
+                                  key={order.id}
+                                  className={selectedOrderId === order.id ? 'gestion-row-selected' : ''}
+                                >
+                                  <td>
+                                    <div className="gestion-row-title">
+                                      <span className="gestion-mini-badge">
+                                        <FiCheckCircle size={12} />
+                                      </span>
+                                      <div>
+                                        <strong>{order.order_number}</strong>
+                                        <span>{order.order_date ? new Date(order.order_date).toLocaleString() : 'Sin fecha'}</span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <strong>{order.customer?.name || 'Sin cliente'}</strong>
+                                    <div>{order.customer?.phone || order.customer?.email || 'Sin contacto'}</div>
+                                  </td>
+                                  <td>${Number(order.total_amount || 0).toFixed(2)}</td>
+                                  <td>{formatOrderState(order.state)}</td>
+                                  <td>
+                                    <div className="gestion-row-actions">
+                                      <button type="button" className="gestion-inline-button" onClick={() => openOrderDetail(order.id)}>
+                                        Detalle
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    ) : selectedOrder ? (
+                      <div className="gestion-order-screen">
+                        <div className="gestion-order-screen__top">
+                          <button type="button" className="btn btn-secondary" onClick={() => navigate('/gestion/ordenes')}>
+                            <FiArrowLeft /> Volver a ordenes
+                          </button>
+                        </div>
+
+                        <div className="gestion-order-detail">
+                          <div className="gestion-order-detail__header">
+                            <div>
+                              <span className="eyebrow">{selectedOrder.order_number}</span>
+                              <h3>{selectedOrder.customer?.name || 'Cliente'}</h3>
+                              <p>
+                                {selectedOrder.customer?.phone || 'Sin telefono'} · {selectedOrder.customer?.email || 'Sin correo'}
+                              </p>
+                            </div>
+                            <div className="gestion-order-detail__meta">
+                              <span>Estado: {formatOrderState(selectedOrder.state)}</span>
+                              <span>Pago: {formatPaymentState(selectedOrder.payment_state)}</span>
+                              <span>Total: ${Number(selectedOrder.total_amount || 0).toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                          <div className="gestion-order-detail__grid">
+                            <div className="gestion-order-detail__panel">
+                              <strong>Cliente</strong>
+                              <p>{selectedOrder.customer?.name || 'Sin cliente'}</p>
+                              <small>{selectedOrder.customer?.phone || selectedOrder.customer?.email || 'Sin contacto'}</small>
+                            </div>
+                            <div className="gestion-order-detail__panel">
+                              <strong>Stock</strong>
+                              <p>
+                                {selectedOrder.stock_committed
+                                  ? 'El stock ya fue descontado.'
+                                  : selectedOrder.stock_reserved
+                                    ? 'El stock esta reservado mientras confirmas por WhatsApp.'
+                                    : 'La orden no tiene reserva activa.'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="gestion-table-wrap">
+                            <table className="gestion-table">
+                              <thead>
+                                <tr>
+                                  <th>Producto</th>
+                                  <th>Cantidad</th>
+                                  <th>Precio</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {selectedOrder.items.map((item) => (
+                                  <tr key={`${selectedOrder.id}-${item.product_id}`}>
+                                    <td>{item.product_name}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>${Number(item.unit_price || 0).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <Field label="Notas internas">
+                            <textarea
+                              value={selectedOrder.notes || ''}
+                              onChange={(e) => updateOrderNotes(selectedOrder.id, e.target.value)}
+                              placeholder="Ej. Cliente confirmo por WhatsApp."
+                            />
+                          </Field>
+
+                          <div className="gestion-order-total">
+                            <span>Total del cliente</span>
+                            <strong>${Number(selectedOrder.total_amount || 0).toFixed(2)}</strong>
+                          </div>
+
+                          <div className="gestion-form-actions">
+                            {!['cancelled', 'done'].includes(selectedOrder.state) ? (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                disabled={isSaving}
+                                onClick={() => updateOrder(selectedOrder.id, 'complete')}
+                              >
+                                Marcar como completa
+                              </button>
+                            ) : null}
+                            {!['cancelled', 'done', 'shipped'].includes(selectedOrder.state) ? (
+                              <button
+                                type="button"
+                                className="btn btn-secondary gestion-danger-btn"
+                                disabled={isSaving}
+                                onClick={() => updateOrder(selectedOrder.id, 'cancel')}
+                              >
+                                Cancelar
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="gestion-loading">No encontramos esa orden.</div>
+                    )}
+                  </article>
+                </motion.div>
+              )}
+
+              {section === 'marcas' && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                  <article className="gestion-card">
+                    <div className="gestion-brand-panel gestion-brand-panel-simple">
+                      <form className="gestion-form" onSubmit={submitBrand}>
+                        <div className="gestion-form-grid">
+                          <Field label="Nombre de marca">
+                            <input
+                              type="text"
+                              value={brandForm.name}
+                              onChange={(e) => setBrandForm((current) => ({ ...current, name: e.target.value }))}
+                            />
+                          </Field>
+                        </div>
+                        <div className="gestion-form-actions">
+                          <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                            <FiPlusCircle /> {brandForm.id ? 'Guardar marca' : 'Crear marca'}
+                          </button>
+                          {brandForm.id ? (
+                            <button type="button" className="btn btn-secondary" onClick={() => setBrandForm(EMPTY_BRAND)}>
+                              Cancelar
+                            </button>
+                          ) : null}
+                        </div>
+                      </form>
+
+                      <div className="gestion-table-wrap">
+                        <table className="gestion-table">
+                          <thead>
+                            <tr>
+                              <th>Marca</th>
+                              <th>Estado</th>
+                              <th>Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {brands.map((brand) => (
+                              <tr key={brand.id}>
+                                <td><strong>{brand.name}</strong></td>
+                                <td>{brand.active !== false ? 'Activa' : 'Archivada'}</td>
+                                <td>
+                                  <div className="gestion-row-actions">
+                                    <button type="button" onClick={() => beginBrandEdit(brand)}>
+                                      <FiEdit2 />
+                                    </button>
+                                    <button type="button" onClick={() => removeBrand(brand.id, brand.name)}>
+                                      <FiTrash2 />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </article>
                 </motion.div>
@@ -1232,107 +1605,18 @@ export default function Gestion() {
                   <article className="gestion-card">
                     <SectionHeader
                       title="Servicios"
-                      description="Gestion de los tipos de tatuaje y su disponibilidad."
+                      description="CRUD simple de servicios generales que luego se cotizan por WhatsApp."
                       actionLabel="Nuevo servicio"
                       onAction={openServiceModal}
                     />
-
-                    <form className="gestion-form" onSubmit={submitService}>
-                      <div className="gestion-form-grid">
-                        <Field label="Nombre">
-                          <input
-                            type="text"
-                            value={serviceForm.name}
-                            onChange={(e) => setServiceForm((current) => ({ ...current, name: e.target.value }))}
-                          />
-                        </Field>
-                        <Field label="Tipo">
-                          <select
-                            value={serviceForm.type}
-                            onChange={(e) => setServiceForm((current) => ({ ...current, type: e.target.value }))}
-                          >
-                            <option value="small">Pequeño</option>
-                            <option value="medium">Mediano</option>
-                            <option value="large">Grande</option>
-                          </select>
-                        </Field>
-                        <Field label="Precio">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={serviceForm.price}
-                            onChange={(e) => setServiceForm((current) => ({ ...current, price: e.target.value }))}
-                          />
-                        </Field>
-                        <Field label="Tiempo estimado (horas)">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.25"
-                            value={serviceForm.estimatedTimeHours}
-                            onChange={(e) =>
-                              setServiceForm((current) => ({ ...current, estimatedTimeHours: e.target.value }))
-                            }
-                          />
-                        </Field>
-                        <Field label="Colores">
-                          <select
-                            value={serviceForm.colors}
-                            onChange={(e) => setServiceForm((current) => ({ ...current, colors: e.target.value }))}
-                          >
-                            <option value="black">Negro</option>
-                            <option value="color">Color</option>
-                            <option value="all">Todos</option>
-                          </select>
-                        </Field>
-                        <Field label="Artistas disponibles">
-                          <select multiple value={serviceForm.artist_ids} onChange={updateServiceArtists}>
-                            {artists.map((artist) => (
-                              <option key={artist.id} value={artist.id}>
-                                {artist.name}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                      </div>
-
-                      <Field label="Descripcion">
-                        <textarea
-                          value={serviceForm.description}
-                          onChange={(e) => setServiceForm((current) => ({ ...current, description: e.target.value }))}
-                        />
-                      </Field>
-
-                      <div className="gestion-switch-row">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={serviceForm.active}
-                            onChange={(e) => setServiceForm((current) => ({ ...current, active: e.target.checked }))}
-                          />
-                          Activo
-                        </label>
-                      </div>
-
-                      <div className="gestion-form-actions">
-                        <button type="submit" className="btn btn-primary" disabled={isSaving}>
-                          <FiPlusCircle /> {editing.serviceId ? 'Actualizar' : 'Crear servicio'}
-                        </button>
-                        <button type="button" className="btn btn-secondary" onClick={resetServiceForm}>
-                          Limpiar
-                        </button>
-                      </div>
-                    </form>
 
                     <div className="gestion-table-wrap">
                       <table className="gestion-table">
                         <thead>
                           <tr>
                             <th>Servicio</th>
-                            <th>Tipo</th>
-                            <th>Precio</th>
-                            <th>Artistas</th>
+                            <th>Citas confirmadas</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                           </tr>
                         </thead>
@@ -1350,9 +1634,8 @@ export default function Gestion() {
                                   </div>
                                 </div>
                               </td>
-                              <td>{service.typeName || service.type}</td>
-                              <td>${Number(service.price || 0).toFixed(2)}</td>
-                              <td>{service.available_artists || 0}</td>
+                              <td>{service.total_appointments || 0}</td>
+                              <td>{service.active !== false ? 'Activo' : 'Inactivo'}</td>
                               <td>
                                 <div className="gestion-row-actions">
                                   <button type="button" onClick={() => beginServiceEdit(service)}>
@@ -1379,7 +1662,7 @@ export default function Gestion() {
           {activeModal === 'artist' && (
             <GestionModal
               title={editing.artistId ? 'Editar artista' : 'Nuevo artista'}
-              description="Gestiona la informacion publica y operativa del tatuador."
+              description="Perfil limpio para la web. Los trabajos del tatuador se suben en Galeria."
               onClose={resetArtistForm}
             >
               <form className="gestion-form" onSubmit={submitArtist}>
@@ -1391,35 +1674,20 @@ export default function Gestion() {
                       onChange={(e) => setArtistForm((current) => ({ ...current, name: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Especializacion">
+                  <Field label="Especialidad">
                     <input
                       type="text"
                       value={artistForm.specialization}
                       onChange={(e) => setArtistForm((current) => ({ ...current, specialization: e.target.value }))}
+                      placeholder="Ej. Fine line, blackwork, realism"
                     />
                   </Field>
-                  <Field label="Correo">
-                    <input
-                      type="email"
-                      value={artistForm.email}
-                      onChange={(e) => setArtistForm((current) => ({ ...current, email: e.target.value }))}
-                    />
-                  </Field>
-                  <Field label="Telefono">
+                  <Field label="Handle social">
                     <input
                       type="text"
-                      value={artistForm.phone}
-                      onChange={(e) => setArtistForm((current) => ({ ...current, phone: e.target.value }))}
-                    />
-                  </Field>
-                  <Field label="Anios de experiencia">
-                    <input
-                      type="number"
-                      min="0"
-                      value={artistForm.years_of_experience}
-                      onChange={(e) =>
-                        setArtistForm((current) => ({ ...current, years_of_experience: e.target.value }))
-                      }
+                      placeholder='Ej. @skinart.tattoo'
+                      value={artistForm.social_handle}
+                      onChange={(e) => setArtistForm((current) => ({ ...current, social_handle: e.target.value }))}
                     />
                   </Field>
                   <Field label="Foto">
@@ -1427,31 +1695,13 @@ export default function Gestion() {
                   </Field>
                 </div>
 
-                <Field label="Biografia">
+                <Field label="Detalle">
                   <textarea
                     value={artistForm.biography}
                     onChange={(e) => setArtistForm((current) => ({ ...current, biography: e.target.value }))}
+                    placeholder="Descripcion breve del artista para la web."
                   />
                 </Field>
-
-                <div className="gestion-switch-row">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={artistForm.is_available}
-                      onChange={(e) => setArtistForm((current) => ({ ...current, is_available: e.target.checked }))}
-                    />
-                    Disponible
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={artistForm.active}
-                      onChange={(e) => setArtistForm((current) => ({ ...current, active: e.target.checked }))}
-                    />
-                    Activo
-                  </label>
-                </div>
 
                 {artistForm.imagePreview && (
                   <div className="gestion-image-preview">
@@ -1482,34 +1732,69 @@ export default function Gestion() {
                   <Field label="Nombre">
                     <input
                       type="text"
+                      required
                       value={productForm.name}
                       onChange={(e) => setProductForm((current) => ({ ...current, name: e.target.value }))}
                     />
                   </Field>
                   <Field label="Marca">
-                    <input
-                      type="text"
-                      value={productForm.brand}
-                      onChange={(e) => setProductForm((current) => ({ ...current, brand: e.target.value }))}
-                    />
+                    <select
+                      required
+                      value={productForm.brand_id}
+                      onChange={(e) => {
+                        const nextId = e.target.value;
+                        const selectedBrand = brands.find((brand) => String(brand.id) === nextId);
+                        setProductForm((current) => ({
+                          ...current,
+                          brand_id: nextId,
+                          brand: selectedBrand?.name || '',
+                        }));
+                      }}
+                    >
+                      <option value="">Selecciona una marca</option>
+                      {brands.map((brand) => (
+                        <option key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
                   <Field label="Precio">
                     <input
                       type="number"
                       min="0"
                       step="0.01"
+                      required
                       value={productForm.price}
                       onChange={(e) => setProductForm((current) => ({ ...current, price: e.target.value }))}
                     />
                   </Field>
+                  <Field label="Cantidad disponible">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      required
+                      value={productForm.quantity_available}
+                      onChange={(e) => setProductForm((current) => ({ ...current, quantity_available: e.target.value }))}
+                    />
+                  </Field>
                 </div>
 
-                <Field label="Descripcion">
-                  <textarea
-                    value={productForm.description}
-                    onChange={(e) => setProductForm((current) => ({ ...current, description: e.target.value }))}
+                <Field label="Foto del producto">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    required={!productForm.imagePreview}
+                    onChange={setProductImage}
                   />
                 </Field>
+
+                {productForm.imagePreview && (
+                  <div className="gestion-image-preview">
+                    <img src={previewSource(productForm.imagePreview)} alt="Preview producto" />
+                  </div>
+                )}
 
                 <div className="gestion-form-actions">
                   <button type="submit" className="btn btn-primary" disabled={isSaving}>
@@ -1622,7 +1907,7 @@ export default function Gestion() {
           {activeModal === 'service' && (
             <GestionModal
               title={editing.serviceId ? 'Editar servicio' : 'Nuevo servicio'}
-              description="Define precios, tiempos y artistas disponibles para cada servicio."
+              description="Servicio general del estudio, sin precio fijo ni tatuador asignado."
               onClose={resetServiceForm}
             >
               <form className="gestion-form" onSubmit={submitService}>
@@ -1630,100 +1915,19 @@ export default function Gestion() {
                   <Field label="Nombre">
                     <input
                       type="text"
+                      required
                       value={serviceForm.name}
                       onChange={(e) => setServiceForm((current) => ({ ...current, name: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Tipo">
-                    <select
-                      value={serviceForm.type}
-                      onChange={(e) => setServiceForm((current) => ({ ...current, type: e.target.value }))}
-                    >
-                      <option value="small">Pequeño</option>
-                      <option value="medium">Mediano</option>
-                      <option value="large">Grande</option>
-                    </select>
-                  </Field>
-                  <Field label="Precio">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={serviceForm.price}
-                      onChange={(e) => setServiceForm((current) => ({ ...current, price: e.target.value }))}
-                    />
-                  </Field>
-                  <Field label="Tiempo estimado (horas)">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.25"
-                      value={serviceForm.estimatedTimeHours}
-                      onChange={(e) =>
-                        setServiceForm((current) => ({ ...current, estimatedTimeHours: e.target.value }))
-                      }
-                    />
-                  </Field>
-                  <Field label="Colores">
-                    <select
-                      value={serviceForm.colors}
-                      onChange={(e) => setServiceForm((current) => ({ ...current, colors: e.target.value }))}
-                    >
-                      <option value="black">Negro</option>
-                      <option value="color">Color</option>
-                      <option value="all">Todos</option>
-                    </select>
-                  </Field>
-                </div>
-
-                <div className="gestion-field gestion-field-wide">
-                  <span>Artistas disponibles</span>
-                  <div className="gestion-artist-picker">
-                    {artists.length ? (
-                      artists.map((artist) => {
-                        const artistId = String(artist.id);
-                        const selected = serviceForm.artist_ids.includes(artistId);
-
-                        return (
-                          <button
-                            key={artist.id}
-                            type="button"
-                            className={`gestion-artist-option ${selected ? 'selected' : ''}`}
-                            onClick={() => toggleServiceArtist(artist.id)}
-                            aria-pressed={selected}
-                          >
-                            {artist.image ? (
-                              <img src={previewSource(artist.image)} alt={artist.name} />
-                            ) : (
-                              <span className="gestion-artist-initial">
-                                {(artist.name || '?').charAt(0)}
-                              </span>
-                            )}
-                            <span className="gestion-artist-copy">
-                              <strong>{artist.name}</strong>
-                              <small>{artist.specialization || 'Sin especialidad'}</small>
-                            </span>
-                            <span className="gestion-artist-check">
-                              <FiCheckCircle size={15} />
-                            </span>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <p className="gestion-empty-note">Crea tatuadores primero para asignarlos a este servicio.</p>
-                    )}
-                  </div>
-                  <small>
-                    {serviceForm.artist_ids.length
-                      ? `${serviceForm.artist_ids.length} tatuador(es) seleccionado(s)`
-                      : 'Selecciona uno o varios tatuadores para este servicio.'}
-                  </small>
                 </div>
 
                 <Field label="Descripcion">
                   <textarea
+                    required
                     value={serviceForm.description}
                     onChange={(e) => setServiceForm((current) => ({ ...current, description: e.target.value }))}
+                    placeholder="Ej. Cover, modificacion, retoque o cualquier servicio general del estudio."
                   />
                 </Field>
 

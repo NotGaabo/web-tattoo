@@ -50,6 +50,13 @@ body {
   min-height: 100vh;
 }
 
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.06em;
@@ -257,6 +264,10 @@ textarea {
 }
 
 @media (max-width: 768px) {
+  .container {
+    width: min(1180px, calc(100% - 1.5rem));
+  }
+
   h1 {
     font-size: 2.8rem;
   }
@@ -275,5 +286,11 @@ textarea {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: min(1180px, calc(100% - 1rem));
   }
 }

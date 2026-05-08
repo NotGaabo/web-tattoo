@@ -24,18 +24,22 @@ function singleResponse(value) {
 
 export const managementApi = {
   async getDashboard() {
-    const [artists, products, gallery, services] = await Promise.all([
+    const [artists, products, brands, gallery, services, orders] = await Promise.all([
       this.listArtists(),
       this.listProducts(),
+      this.listProductBrands(),
       this.listGallery(),
       this.listServices(),
+      this.listOrders(),
     ]);
 
     return {
       artists,
       products,
+      brands,
       gallery,
       services,
+      orders,
     };
   },
 
@@ -69,6 +73,30 @@ export const managementApi = {
 
   async deleteProduct(id) {
     return request('DELETE', `/api/products/${id}`);
+  },
+
+  async listOrders() {
+    return listResponse(await request('GET', '/api/orders?scope=all'));
+  },
+
+  async updateOrder(id, payload) {
+    return singleResponse(await request('PATCH', `/api/orders/${id}?scope=all`, payload));
+  },
+
+  async listProductBrands() {
+    return listResponse(await request('GET', '/api/product-brands'));
+  },
+
+  async createProductBrand(payload) {
+    return singleResponse(await request('POST', '/api/product-brands', payload));
+  },
+
+  async updateProductBrand(id, payload) {
+    return singleResponse(await request('PUT', `/api/product-brands/${id}`, payload));
+  },
+
+  async deleteProductBrand(id) {
+    return request('DELETE', `/api/product-brands/${id}`);
   },
 
   async listGallery(params = {}) {

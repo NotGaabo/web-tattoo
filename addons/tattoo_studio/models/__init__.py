@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import customer
+from . import contact_request
 from . import product
 from . import service
 from . import artist

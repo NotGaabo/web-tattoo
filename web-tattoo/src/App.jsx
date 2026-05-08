@@ -13,7 +13,6 @@ import Artists from './pages/Artists';
 import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Auth from './pages/Auth';
-import Portal from './pages/Portal';
 import Gestion from './pages/Gestion';
 import Booking from './pages/Booking';
 import ArtistDetail from './pages/ArtistDetail';
@@ -102,19 +101,32 @@ function AppLayout() {
               <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:artistId" element={<ArtistDetail />} />
               <Route path="/booking/:artistId" element={<Booking />} />
-              <Route path="/appointment" element={<Booking />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/debug" element={<Debug />} />
               <Route
-                path="/portal"
+                path="/appointment"
                 element={
-                  <ProtectedRoute allowedRoles={['portal']}>
-                    <Portal />
+                  <ProtectedRoute>
+                    <Booking />
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/contact"
+                element={
+                  <ProtectedRoute>
+                    <Contact />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/debug" element={<Debug />} />
               <Route
                 path="/gestion/*"
                 element={

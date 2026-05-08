@@ -2,6 +2,69 @@
   overflow-x: hidden;
 }
 
+.home-hero-copy {
+  text-align: center;
+}
+
+.home-eyebrow,
+.home-hero-actions-modern {
+  justify-content: center;
+}
+
+.home-hero-title,
+.home-hero-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-hero-title {
+  max-width: 14ch !important;
+}
+
+.home-hero-stats {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-booking-card {
+  width: 100%;
+}
+
+.home-gallery-header {
+  width: 100%;
+}
+
+.home-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.home-gallery-grid > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.home-booking-content {
+  width: 100%;
+}
+
+.home-booking-copy,
+.home-booking-info {
+  min-width: 0;
+}
+
+.home-booking-cta {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.home-booking-info-card {
+  min-width: 0;
+}
+
 .hero {
   min-height: 92vh;
   display: flex;
@@ -250,6 +313,54 @@
   .about-grid {
     grid-template-columns: 1fr;
   }
+
+  .home-hero-section {
+    min-height: auto !important;
+    padding: 96px 28px 72px !important;
+  }
+
+  .home-hero-layout,
+  .home-booking-layout {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+
+  .home-hero-copy {
+    text-align: center;
+  }
+
+  .home-eyebrow,
+  .home-hero-actions-modern {
+    justify-content: center;
+  }
+
+  .home-hero-title,
+  .home-hero-text {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .home-hero-title {
+    max-width: 14ch !important;
+  }
+
+  .home-hero-stats {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .home-hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .home-booking-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  .home-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -266,5 +377,114 @@
   .services-grid,
   .products-preview-grid {
     grid-template-columns: 1fr;
+  }
+
+  .home-hero-section,
+  .home-section {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .home-hero-section {
+    padding-top: 84px !important;
+    padding-bottom: 56px !important;
+  }
+
+  .home-section {
+    padding-top: 68px !important;
+    padding-bottom: 68px !important;
+  }
+
+  .home-hero-copy {
+    text-align: center;
+  }
+
+  .home-eyebrow {
+    justify-content: center;
+    letter-spacing: 0.16em !important;
+    font-size: 10px !important;
+    flex-wrap: wrap;
+  }
+
+  .home-hero-title {
+    max-width: 13ch !important;
+    font-size: clamp(32px, 12vw, 46px) !important;
+  }
+
+  .home-hero-text {
+    max-width: 34ch !important;
+    font-size: 15px !important;
+  }
+
+  .home-hero-actions-modern {
+    justify-content: center;
+  }
+
+  .home-hero-actions-modern a {
+    justify-content: center;
+    width: 100%;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .home-hero-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .home-gallery-tags {
+    width: 100%;
+  }
+
+  .home-gallery-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .home-booking-card {
+    min-height: auto !important;
+    padding: 24px 20px !important;
+  }
+
+  .home-booking-cta {
+    width: 100%;
+  }
+
+  .home-booking-info-card {
+    padding: 13px 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-gallery-header {
+    margin-bottom: 34px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-section,
+  .home-section {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .home-hero-title {
+    font-size: clamp(30px, 13vw, 40px) !important;
+  }
+
+  .home-hero-stats > div {
+    padding: 16px 14px !important;
+  }
+
+  .home-booking-card {
+    padding: 22px 16px !important;
+  }
+
+  .home-booking-content {
+    gap: 18px !important;
+  }
+
+  .home-booking-info-card {
+    gap: 10px !important;
+    border-radius: 16px !important;
   }
 }

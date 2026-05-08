@@ -3,6 +3,7 @@
 from uuid import uuid4
 
 from odoo import fields, http
+from odoo.exceptions import AccessDenied
 from odoo.http import request
 
 from .api_utils import TattooApiControllerMixin
@@ -11,6 +12,23 @@ from .api_utils import TattooApiControllerMixin
 class TattooAuthController(TattooApiControllerMixin, http.Controller):
     def _generate_token(self):
         return uuid4().hex
+
+    def _authenticate_user(self, email, password):
+        credential = {
+            'login': email,
+            'password': password,
+            'type': 'password',
+        }
+
+        try:
+            auth_info = request.session.authenticate(request.env, credential)
+        except AccessDenied:
+            return False
+        except Exception:
+            return False
+
+        user_id = auth_info.get('uid') or request.session.uid
+        return request.env['res.users'].sudo().browse(user_id).exists()
 
     def _get_user_role(self, user):
         if user.share:
@@ -43,16 +61,13 @@ class TattooAuthController(TattooApiControllerMixin, http.Controller):
         customer_email = (email or partner.email or user.login or '').strip().lower()
         customer_phone = (phone or partner.phone or '').strip()
 
-        domain = [('user_id', '=', user.id)]
-        if customer_email:
-            domain = ['|', ('user_id', '=', user.id), ('email', '=', customer_email)]
+        domain = [('email', '=', customer_email or user.login)]
 
         customer = Customer.search(domain, limit=1)
         customer_vals = {
             'name': customer_name or user.name or user.login,
             'email': customer_email or user.login,
             'phone': customer_phone,
-            'user_id': user.id,
         }
 
         if customer:
@@ -135,19 +150,16 @@ class TattooAuthController(TattooApiControllerMixin, http.Controller):
                 'message': 'user not found',
             }, status=401)
 
-        try:
-            user.with_user(user)._check_credentials({
-                'type': 'password',
-                'password': password,
-            }, {'interactive': True})
-        except Exception as e:
+        authenticated_user = self._authenticate_user(email, password)
+        if not authenticated_user:
             return self._response({
                 'success': False,
-                'message': 'invalid credentials: %s' % str(e),
+                'message': 'invalid credentials',
             }, status=401)
+        user = authenticated_user
 
         token = self._generate_token()
-        user.write({
+        user.sudo().write({
             'api_token': token,
         })
 

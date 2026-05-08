@@ -93,7 +93,7 @@ function BookingSlot({ slot, index }) {
 
       {/* Botón — texto negro visible sobre dorado */}
       <Link
-        to="/contact"
+        to="/appointment"
         style={{
           display: 'flex',
           alignItems: 'center',

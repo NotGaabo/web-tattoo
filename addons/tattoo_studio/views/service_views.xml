@@ -7,9 +7,8 @@
         <field name="arch" type="xml">
             <list string="Services">
                 <field name="name"/>
-                <field name="service_type"/>
-                <field name="base_price"/>
-                <field name="estimated_time_hours"/>
+                <field name="description"/>
+                <field name="active"/>
                 <field name="average_rating"/>
                 <field name="total_appointments"/>
             </list>
@@ -28,10 +27,7 @@
                     </h1>
                     <group>
                         <group string="Service Details">
-                            <field name="service_type"/>
-                            <field name="base_price"/>
-                            <field name="estimated_time_hours"/>
-                            <field name="available_colors"/>
+                            <field name="description"/>
                             <field name="active"/>
                         </group>
                         <group string="Statistics">
@@ -40,18 +36,6 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Description" name="description">
-                            <field name="description"/>
-                        </page>
-                        <page string="Artists" name="artists">
-                            <field name="artist_ids">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="specialization"/>
-                                    <field name="years_of_experience"/>
-                                </list>
-                            </field>
-                        </page>
                         <page string="Reviews" name="reviews">
                             <field name="review_ids" readonly="1">
                                 <list>

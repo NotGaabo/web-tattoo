@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
           <div className="page-card page-card-center">
             <span className="eyebrow">Sincronizando portal</span>
             <h1>Validando tu acceso</h1>
-            <p>Estamos comprobando tu sesion con Odoo para llevarte al portal correcto.</p>
+            <p>Estamos comprobando tu sesion con Odoo para llevarte al area correcta.</p>
           </div>
         </div>
       </div>

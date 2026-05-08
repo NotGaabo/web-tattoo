@@ -41,6 +41,7 @@ class TattooCustomer(models.Model):
     order_ids = fields.One2many('tattoo.order', 'customer_id', string='Orders')
     appointment_ids = fields.One2many('tattoo.appointment', 'customer_id', string='Appointments')
     review_ids = fields.One2many('tattoo.review', 'customer_id', string='Reviews')
+    contact_request_ids = fields.One2many('tattoo.contact.request', 'customer_id', string='Contact Requests')
     
     # Estado
     active = fields.Boolean(default=True)

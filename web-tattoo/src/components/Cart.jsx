@@ -10,7 +10,7 @@ import './Cart.css';
  */
 export default function Cart() {
   const { items, total, removeItem, updateQuantity, clearCart } = useCartStore();
-  const { isCartOpen, toggleCart } = useUIStore();
+  const { isCartOpen, toggleCart, showNotification } = useUIStore();
 
   const renderItemImage = (item) => {
     const hasImageSrc =
@@ -92,7 +92,14 @@ export default function Cart() {
                         </button>
                         <span>{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => {
+                            const limit = Number(item.available_quantity ?? Infinity);
+                            if (item.quantity >= limit) {
+                              showNotification(`Solo hay ${limit} unidad(es) disponibles para ${item.name}.`, 'warning');
+                              return;
+                            }
+                            updateQuantity(item.id, item.quantity + 1);
+                          }}
                           aria-label="Aumentar cantidad"
                         >
                           <FiPlus size={16} />

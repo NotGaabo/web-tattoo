@@ -1,10 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tattoo_customer_user,tattoo.customer user,model_tattoo_customer,base.group_user,1,1,1,0
 access_tattoo_customer_manager,tattoo.customer manager,model_tattoo_customer,base.group_erp_manager,1,1,1,1
+access_tattoo_contact_request_user,tattoo.contact.request user,model_tattoo_contact_request,base.group_user,1,1,1,0
+access_tattoo_contact_request_manager,tattoo.contact.request manager,model_tattoo_contact_request,base.group_erp_manager,1,1,1,1
 access_tattoo_service_user,tattoo.service user,model_tattoo_service,base.group_user,1,0,0,0
 access_tattoo_service_manager,tattoo.service manager,model_tattoo_service,base.group_erp_manager,1,1,1,1
 access_tattoo_artist_user,tattoo.artist user,model_tattoo_artist,base.group_user,1,0,0,0
 access_tattoo_artist_manager,tattoo.artist manager,model_tattoo_artist,base.group_erp_manager,1,1,1,1
+access_tattoo_product_brand_user,tattoo.product.brand user,model_tattoo_product_brand,base.group_user,1,1,1,0
+access_tattoo_product_brand_manager,tattoo.product.brand manager,model_tattoo_product_brand,base.group_erp_manager,1,1,1,1
 access_tattoo_artist_gallery_user,tattoo.artist.gallery user,model_tattoo_artist_gallery,base.group_user,1,1,1,0
 access_tattoo_artist_gallery_manager,tattoo.artist.gallery manager,model_tattoo_artist_gallery,base.group_erp_manager,1,1,1,1
 access_tattoo_order_user,tattoo.order user,model_tattoo_order,base.group_user,1,1,1,0

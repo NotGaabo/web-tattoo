@@ -7,20 +7,49 @@ from .api_utils import TattooApiControllerMixin
 
 
 class TattooArtistController(TattooApiControllerMixin, http.Controller):
+    def _skill_commands_from_payload(self, data):
+        commands = []
+        ids = data.get('skill_ids') or []
+        names = data.get('skills') or []
+
+        if ids:
+            commands.extend(int(skill_id) for skill_id in ids if skill_id)
+
+        if isinstance(names, str):
+            names = [item.strip() for item in names.split(',') if item.strip()]
+
+        if names:
+            skill_model = request.env['tattoo.skill'].sudo()
+            for raw_name in names:
+                skill_name = (raw_name or '').strip()
+                if not skill_name:
+                    continue
+                existing = skill_model.search([('name', '=ilike', skill_name)], limit=1)
+                if not existing:
+                    existing = skill_model.create({'name': skill_name})
+                commands.append(existing.id)
+
+        unique_ids = list(dict.fromkeys(commands))
+        return [(6, 0, unique_ids)], unique_ids
+
+    def _specialization_from_payload(self, data, skill_ids):
+        if skill_ids:
+            skills = request.env['tattoo.skill'].sudo().browse(skill_ids).mapped('name')
+            return ', '.join(skills[:3])
+        return (data.get('specialization') or '').strip()
+
     def _serialize_artist(self, artist):
         return {
             'id': artist.id,
             'name': artist.name,
             'email': artist.email or '',
             'phone': artist.phone or '',
+            'social_handle': artist.social_handle or '',
             'specialization': artist.specialization or '',
             'biography': artist.biography or '',
-            'years_of_experience': artist.years_of_experience or 0,
             'rating': artist.average_rating or 0.0,
             'reviewCount': artist.total_reviews or 0,
             'total_completed_appointments': artist.total_completed_appointments or 0,
-            'is_available': artist.is_available,
-            'active': artist.active,
             'image': f'/web/image/tattoo.artist/{artist.id}/image_1920' if artist.image_1920 else '',
             'skills': [skill.name for skill in artist.skill_ids],
             'skill_ids': artist.skill_ids.ids,
@@ -74,16 +103,16 @@ class TattooArtistController(TattooApiControllerMixin, http.Controller):
                 'message': 'name is required',
             }, status=400)
 
+        skill_commands, skill_ids = self._skill_commands_from_payload(data)
+
         artist = request.env['tattoo.artist'].sudo().create({
             'name': name,
             'email': (data.get('email') or '').strip(),
             'phone': (data.get('phone') or '').strip(),
-            'specialization': (data.get('specialization') or '').strip(),
+            'social_handle': (data.get('social_handle') or '').strip(),
+            'specialization': self._specialization_from_payload(data, skill_ids),
             'biography': data.get('biography') or '',
-            'years_of_experience': int(data.get('years_of_experience') or 0),
-            'is_available': bool(data.get('is_available', True)),
-            'active': bool(data.get('active', True)),
-            'skill_ids': [(6, 0, data.get('skill_ids') or [])],
+            'skill_ids': skill_commands,
             'service_ids': [(6, 0, data.get('service_ids') or [])],
         })
 
@@ -128,6 +157,7 @@ class TattooArtistController(TattooApiControllerMixin, http.Controller):
         if request.httprequest.method in ('PUT', 'PATCH'):
             data = self._json_body()
             values = {}
+            resolved_skill_ids = None
 
             if 'name' in data:
                 values['name'] = (data.get('name') or '').strip()
@@ -135,18 +165,15 @@ class TattooArtistController(TattooApiControllerMixin, http.Controller):
                 values['email'] = (data.get('email') or '').strip()
             if 'phone' in data:
                 values['phone'] = (data.get('phone') or '').strip()
-            if 'specialization' in data:
+            if 'social_handle' in data:
+                values['social_handle'] = (data.get('social_handle') or '').strip()
+            if 'specialization' in data and 'skills' not in data and 'skill_ids' not in data:
                 values['specialization'] = (data.get('specialization') or '').strip()
             if 'biography' in data:
                 values['biography'] = data.get('biography') or ''
-            if 'years_of_experience' in data:
-                values['years_of_experience'] = int(data.get('years_of_experience') or 0)
-            if 'is_available' in data:
-                values['is_available'] = bool(data.get('is_available'))
-            if 'active' in data:
-                values['active'] = bool(data.get('active'))
-            if 'skill_ids' in data:
-                values['skill_ids'] = [(6, 0, data.get('skill_ids') or [])]
+            if 'skill_ids' in data or 'skills' in data:
+                values['skill_ids'], resolved_skill_ids = self._skill_commands_from_payload(data)
+                values['specialization'] = self._specialization_from_payload(data, resolved_skill_ids)
             if 'service_ids' in data:
                 values['service_ids'] = [(6, 0, data.get('service_ids') or [])]
             if 'image' in data:

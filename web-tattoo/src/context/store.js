@@ -60,14 +60,21 @@ export const useCartStore = create((set) => ({
     set((state) => {
       const quantity = Number(product.quantity || 1);
       const existingItem = state.items.find((item) => item.id === product.id);
+      const availableQuantity = Number(product.available_quantity ?? product.quantity_available ?? existingItem?.available_quantity ?? Infinity);
 
       const items = existingItem
-        ? state.items.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item,
-          )
-        : [...state.items, { ...product, quantity }];
+        ? state.items.map((item) => {
+            if (item.id !== product.id) {
+              return item;
+            }
+            return {
+              ...item,
+              ...product,
+              available_quantity: availableQuantity,
+              quantity: Math.min(item.quantity + quantity, availableQuantity),
+            };
+          })
+        : [...state.items, { ...product, available_quantity: availableQuantity, quantity: Math.min(quantity, availableQuantity) }];
 
       return persistCart(items);
     }),
@@ -84,8 +91,43 @@ export const useCartStore = create((set) => ({
       }
 
       const items = state.items.map((item) =>
-        item.id === productId ? { ...item, quantity } : item,
+        item.id === productId
+          ? {
+              ...item,
+              quantity: Math.min(quantity, Number(item.available_quantity ?? Infinity)),
+            }
+          : item,
       );
+
+      return persistCart(items);
+    }),
+  syncAvailability: (products) =>
+    set((state) => {
+      if (!Array.isArray(products) || products.length === 0 || state.items.length === 0) {
+        return state;
+      }
+
+      const productsById = new Map(
+        products.map((product) => [
+          Number(product.id),
+          Number(product.quantity_sellable ?? product.quantity_available ?? 0),
+        ]),
+      );
+
+      const items = state.items
+        .map((item) => {
+          if (!productsById.has(Number(item.id))) {
+            return item;
+          }
+
+          const availableQuantity = productsById.get(Number(item.id));
+          return {
+            ...item,
+            available_quantity: availableQuantity,
+            quantity: Math.min(item.quantity, availableQuantity),
+          };
+        })
+        .filter((item) => item.quantity > 0);
 
       return persistCart(items);
     }),

@@ -7,14 +7,14 @@ import './ReviewForm.css';
 /**
  * Componente ReviewForm - Formulario para dejar reseñas
  * @param {string} itemId - ID del producto/servicio
- * @param {string} itemType - Tipo de item ('product' o 'service')
+ * @param {string} itemType - Tipo de item ('product', 'service' o 'artist')
  * @param {Function} onSubmit - Callback cuando se envía la reseña
  */
-export default function ReviewForm({ itemId, itemType, onSubmit, onClose }) {
+export default function ReviewForm({ itemId, itemType, onSubmit, onClose, userName = '', hideNameField = false }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [name, setName] = useState('');
+  const [name, setName] = useState(userName);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const showNotification = useUIStore(state => state.showNotification);
 
@@ -26,7 +26,7 @@ export default function ReviewForm({ itemId, itemType, onSubmit, onClose }) {
       return;
     }
 
-    if (!comment.trim() || !name.trim()) {
+    if (!comment.trim() || (!hideNameField && !name.trim())) {
       showNotification('Por favor, completa todos los campos', 'warning');
       return;
     }
@@ -39,7 +39,7 @@ export default function ReviewForm({ itemId, itemType, onSubmit, onClose }) {
         itemType,
         rating,
         comment,
-        name,
+        name: hideNameField ? userName : name,
         date: new Date().toISOString()
       };
 
@@ -56,7 +56,7 @@ export default function ReviewForm({ itemId, itemType, onSubmit, onClose }) {
         setTimeout(onClose, 500);
       }
     } catch (error) {
-      showNotification('Error al enviar la reseña', 'error');
+      showNotification(error?.message || 'Error al enviar la reseña', 'error');
       console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
@@ -89,17 +89,19 @@ export default function ReviewForm({ itemId, itemType, onSubmit, onClose }) {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="review-form">
           {/* Nombre */}
-          <div className="form-group">
-            <label htmlFor="name">Tu nombre</label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Tu nombre (opcional)"
-              disabled={isSubmitting}
-            />
-          </div>
+          {!hideNameField && (
+            <div className="form-group">
+              <label htmlFor="name">Tu nombre</label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Tu nombre"
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
 
           {/* Rating */}
           <div className="form-group">

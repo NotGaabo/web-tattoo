@@ -64,6 +64,29 @@ class TattooReview(models.Model):
             if review.review_type == 'artist' and not review.artist_id:
                 raise ValidationError('Artist is required for artist reviews!')
 
+    @api.constrains('customer_id', 'review_type', 'product_id', 'service_id', 'artist_id', 'active')
+    def _check_duplicate_review_per_customer(self):
+        """Impide que una persona califique dos veces el mismo elemento."""
+        for review in self.filtered(lambda item: item.active and item.customer_id and item.review_type):
+            domain = [
+                ('id', '!=', review.id),
+                ('customer_id', '=', review.customer_id.id),
+                ('review_type', '=', review.review_type),
+                ('active', '=', True),
+            ]
+
+            if review.review_type == 'product' and review.product_id:
+                domain.append(('product_id', '=', review.product_id.id))
+            elif review.review_type == 'service' and review.service_id:
+                domain.append(('service_id', '=', review.service_id.id))
+            elif review.review_type == 'artist' and review.artist_id:
+                domain.append(('artist_id', '=', review.artist_id.id))
+            else:
+                continue
+
+            if self.search_count(domain):
+                raise ValidationError('A customer can only leave one active review per item.')
+
     @api.depends('review_type', 'product_id', 'service_id', 'artist_id', 'customer_id')
     def _compute_verified_purchase(self):
         """Verifica si la reseña viene de una compra verificada"""

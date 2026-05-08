@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from datetime import date
+
 from odoo import models, fields, api
 
 class TattooArtist(models.Model):
@@ -15,11 +17,13 @@ class TattooArtist(models.Model):
     name = fields.Char(string='Artist Name', required=True, track_visibility='onchange')
     email = fields.Char(string='Email')
     phone = fields.Char(string='Phone')
+    social_handle = fields.Char(string='Social Handle', help='Ejemplo: @algo.algo')
     
     # Información profesional
     specialization = fields.Char(string='Specialization')
     biography = fields.Html(string='Biography')
-    years_of_experience = fields.Integer(string='Years of Experience')
+    tattooing_since = fields.Date(string='Tattooing Since', help='Fecha en la que comenzo a tatuar')
+    years_of_experience = fields.Integer(string='Years of Experience', compute='_compute_years_of_experience')
     image_1920 = fields.Image(string='Artist Photo')
     
     # Habilidades
@@ -50,6 +54,18 @@ class TattooArtist(models.Model):
     # Estado
     active = fields.Boolean(default=True)
 
+    @api.depends('tattooing_since')
+    def _compute_years_of_experience(self):
+        current_year = date.today().year
+
+        for artist in self:
+            start_date = artist.tattooing_since
+            start_year = start_date.year if start_date else 0
+            if start_year and start_year <= current_year:
+                artist.years_of_experience = current_year - start_year
+            else:
+                artist.years_of_experience = 0
+
     @api.depends('review_ids.rating')
     def _compute_average_rating(self):
         """Calcula el rating promedio del artista"""
@@ -67,7 +83,7 @@ class TattooArtist(models.Model):
     def _compute_total_completed(self):
         """Cuenta citas completadas"""
         for artist in self:
-            artist.total_completed_appointments = len(artist.appointment_ids.filtered(lambda a: a.state == 'done'))
+            artist.total_completed_appointments = len(artist.appointment_ids.filtered(lambda a: a.state == 'completed'))
 
     def get_artist_profile(self):
         """Retorna perfil del artista en formato JSON para API"""
@@ -75,7 +91,7 @@ class TattooArtist(models.Model):
             'id': self.id,
             'name': self.name,
             'specialization': self.specialization,
-            'experience': f'{self.years_of_experience} years',
+            'social_handle': self.social_handle or '',
             'rating': self.average_rating,
             'reviewCount': self.total_reviews,
             'biography': self.biography or '',
@@ -92,7 +108,6 @@ class TattooArtist(models.Model):
                 }
                 for image in self.gallery_image_ids
             ],
-            'available': self.is_available,
             'image': f'/web/image/tattoo.artist/{self.id}/image_1920' if self.image_1920 else '',
         }
 

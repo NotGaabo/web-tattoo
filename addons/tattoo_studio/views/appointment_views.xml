@@ -81,6 +81,8 @@
                             <group>
                                 <field name="notes"/>
                                 <field name="customer_notes"/>
+                                <field name="whatsapp_number" readonly="1"/>
+                                <field name="whatsapp_message" readonly="1"/>
                             </group>
                         </page>
                     </notebook>

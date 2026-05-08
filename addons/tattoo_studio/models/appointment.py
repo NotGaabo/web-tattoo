@@ -68,6 +68,8 @@ class TattooAppointment(models.Model):
     
     # Referencia a orden si es un servicio de pago
     order_id = fields.Many2one('tattoo.order', string='Related Order')
+    whatsapp_message = fields.Text(string='WhatsApp Message', readonly=True)
+    whatsapp_number = fields.Char(string='WhatsApp Number', readonly=True)
 
     @api.depends('customer_id', 'artist_id', 'appointment_datetime')
     def _compute_name(self):
@@ -83,7 +85,7 @@ class TattooAppointment(models.Model):
     def _compute_duration(self):
         """Obtiene duración del servicio"""
         for appointment in self:
-            appointment.duration_hours = appointment.service_id.estimated_time_hours if appointment.service_id else 0
+            appointment.duration_hours = 1.0 if appointment.service_id else 0
 
     @api.depends('appointment_datetime', 'duration_hours')
     def _compute_end_datetime(self):
@@ -96,22 +98,15 @@ class TattooAppointment(models.Model):
 
     @api.depends('service_id')
     def _compute_deposit(self):
-        """Calcula el depósito requerido (30% del servicio)"""
+        """Los servicios se cotizan luego por WhatsApp, sin deposito automatico."""
         for appointment in self:
-            if appointment.service_id:
-                appointment.deposit_amount = appointment.service_id.base_price * 0.30
-            else:
-                appointment.deposit_amount = 0
+            appointment.deposit_amount = 0
 
     @api.depends('service_id', 'deposit_paid')
     def _compute_balance(self):
-        """Calcula el balance pendiente"""
+        """El balance se gestiona fuera del sistema al cotizar por WhatsApp."""
         for appointment in self:
-            if appointment.service_id:
-                remaining = appointment.service_id.base_price - appointment.deposit_amount if appointment.deposit_paid else appointment.service_id.base_price
-                appointment.remaining_balance = remaining
-            else:
-                appointment.remaining_balance = 0
+            appointment.remaining_balance = 0
 
     @api.constrains('appointment_datetime')
     def _check_future_date(self):
